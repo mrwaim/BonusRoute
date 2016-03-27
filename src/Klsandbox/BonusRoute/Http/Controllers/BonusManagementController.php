@@ -19,6 +19,7 @@ use Klsandbox\BonusModel\Services\BonusManager;
 use Klsandbox\SiteModel\Site;
 use Redirect;
 use Session;
+use Excel;
 
 class BonusManagementController extends Controller
 {
@@ -287,6 +288,8 @@ class BonusManagementController extends Controller
             'Advice Detail', 'Debit Description', 'Credit Description'
         ];
 
+        $data_excel[0] = $header;
+
         $payments_approvals = $payments_approvals->userPaymentsApprovals()
             ->select([
                 'users.bank_name',
@@ -312,7 +315,8 @@ class BonusManagementController extends Controller
             @$data_excel[] = [
                 ($item->swift_code === 'MBBEMYKL') ? 'IT' : 'IG',
                 date('dmY'),
-                $item->user_id,
+//                $item->user_id,
+                '',
                 $item->bonus_payout_cash,
                 // TODO: Validate on input
                 preg_replace('/[^0-9]+/', '', $item->bank_account),
@@ -330,11 +334,19 @@ class BonusManagementController extends Controller
 
         $total = array_sum(array_pluck($data_excel, 3));
 
-        return view('bonus-route::export')
-            ->withHeader($header)
-            ->withDataExcel($data_excel)
-            ->withTotal($total)
-            ;
+        Excel::create($file_name, function ($excel) use ($file_name, $data_excel) {
+
+            $excel->sheet($file_name, function ($sheet) use ($data_excel) {
+                $sheet->fromArray($data_excel, null, 'A1', false, false);
+            });
+
+        })->export('xls');
+//
+//        return view('bonus-route::export')
+//            ->withHeader($header)
+//            ->withDataExcel($data_excel)
+//            ->withTotal($total)
+//            ;
     }
 
     public function postSetApprovalsAll()
