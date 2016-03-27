@@ -2,6 +2,8 @@
 
 namespace Klsandbox\BonusRoute\Http\Controllers;
 
+use Illuminate\Support\MessageBag;
+use Log;
 use App;
 use App\Http\Controllers\Controller;
 use Klsandbox\BillplzRoute\Models\BillplzResponse;
@@ -238,6 +240,31 @@ class BonusManagementController extends Controller
             ->with('data', $data);
     }
 
+    private function validateUser($user_id)
+    {
+        $user = User::find($user_id);
+
+        if (!preg_match('/^[0-9]+$/', $user->bank_account))
+        {
+            Log::info("Unable to update user:$user->id - bank account not match");
+            return false;
+        }
+
+        if (!preg_match('/^[0-9]{12}$/', $user->ic_number))
+        {
+            Log::info("Unable to update user:$user->id - bank account not match");
+            return false;
+        }
+
+        if (!$user->bank_id)
+        {
+            Log::info("Unable to update user:$user->id - bank id is not set");
+            return false;
+        }
+
+        return true;
+    }
+
     public function getSetPaymentsApprovals()
     {
         $validate = \Validator::make(Input::all(), [
@@ -254,6 +281,14 @@ class BonusManagementController extends Controller
 
         if (empty($report)) {
             App::abort(422, 'Invalid data');
+        }
+
+        if (!$this->validateUser($report->user_id) && Input::get('status') == 'approve')
+        {
+            $messages = new MessageBag();
+            $messages->add('user', "User payment details not valid");
+
+            return back()->withErrors($messages);
         }
 
         $payments_approvals = PaymentsApprovals::forSite()->where('user_id', $report->user_id)
@@ -303,6 +338,7 @@ class BonusManagementController extends Controller
             ])
             ->where('monthly_user_reports.bonus_payout_cash', '>', 0)
             ->where('payments_approvals.user_type', $type)
+            ->where('payments_approvals.approved_state', 'approve')
             ->join('monthly_user_reports', function ($join) {
                 $join->on('payments_approvals.user_id', '=', 'monthly_user_reports.user_id');
                 $join->on('payments_approvals.monthly_report_id', '=', 'monthly_user_reports.monthly_report_id');
@@ -366,6 +402,12 @@ class BonusManagementController extends Controller
         $reports = MonthlyUserReport::where('monthly_report_id', $monthly_report_id)->get();
 
         foreach ($reports as $itm) {
+
+            if (!$this->validateUser($itm->user_id))
+            {
+                continue;
+            }
+
             $payments_approvals = PaymentsApprovals::where('user_id', $itm->user_id)
                 ->where('monthly_report_id', $monthly_report_id)
                 ->where('user_type', $type)

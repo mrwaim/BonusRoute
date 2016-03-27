@@ -43,6 +43,7 @@
 
             <h2 class="panel-title">List Payments</h2>
         </header>
+        @include('elements.error-message-partial')
         <div class="panel-body">
             <div class="table-responsive">
                 <table class="{{isset($table_class) ? $table_class : 'table table-bordered table-striped table-condensed mb-none'}}">
