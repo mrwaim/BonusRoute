@@ -14,7 +14,6 @@ use App\Models\User;
 use Klsandbox\ReportRoute\Services\ReportService;
 use Auth;
 use Carbon\Carbon;
-use Excel;
 use Input;
 use Klsandbox\BonusModel\Services\BonusManager;
 use Klsandbox\SiteModel\Site;
@@ -277,15 +276,11 @@ class BonusManagementController extends Controller
 
     public function getExcel($monthly_report_id, $type)
     {
-        if (!Auth::user()->admin()) {
-            App::abort(500, 'Unauthorized');
-        }
-
         $file_name = "bonus_" . date('m') . "_" . date('y') . "_" . $type;
 
         $payments_approvals = MonthlyReport::find($monthly_report_id);
 
-        $data_excel[0] = [
+        $header = [
             'Payment Mode', 'Value Date', 'Customer Reference Number', 'Transaction Amount (RM)',
             'Credit Account Number', 'Beneficiary Name 1', 'Beneficiary Name 2', 'Beneficiary Name 3',
             'ID No (New IC, Old IC, Passport, Business Registration No)', 'Beneficiary Bank Code', 'Email',
@@ -294,8 +289,14 @@ class BonusManagementController extends Controller
 
         $payments_approvals = $payments_approvals->userPaymentsApprovals()
             ->select([
-                'users.bank_name', 'payments_approvals.user_id', 'monthly_user_reports.bonus_payout_cash',
-                'users.bank_account', 'users.name', 'users.ic_number', 'users.email'
+                'users.bank_name',
+                'payments_approvals.user_id',
+                'monthly_user_reports.bonus_payout_cash',
+                'users.bank_account',
+                'users.name',
+                'users.ic_number',
+                'users.email',
+                'banks.swift_code'
             ])
             ->where('monthly_user_reports.bonus_payout_cash', '>', 0)
             ->where('payments_approvals.user_type', $type)
@@ -303,26 +304,37 @@ class BonusManagementController extends Controller
                 $join->on('payments_approvals.user_id', '=', 'monthly_user_reports.user_id');
                 $join->on('payments_approvals.monthly_report_id', '=', 'monthly_user_reports.monthly_report_id');
             })
-            ->leftJoin('users', 'payments_approvals.user_id', '=', 'users.id')->get();
+            ->leftJoin('users', 'payments_approvals.user_id', '=', 'users.id')
+            ->leftJoin('banks', 'users.bank_id', '=', 'banks.id')
+            ->get();
 
         foreach ($payments_approvals as $item) {
             @$data_excel[] = [
-                ($item->bank_name === 'Maybank') ? 'IT' : 'GIRO', date('dmY'), $item->user_id,
-                $item->bonus_payout_cash, $item->bank_account, $item->name, 'NOT APPLICABLE', 'NOT APPLICABLE',
-                $item->ic_number, $item->bank_name, $item->email,
+                ($item->swift_code === 'MBBEMYKL') ? 'IT' : 'IG',
+                date('dmY'),
+                $item->user_id,
+                $item->bonus_payout_cash,
+                // TODO: Validate on input
+                preg_replace('/[^0-9]+/', '', $item->bank_account),
+                $item->name,
+                'NOT APPLICABLE',
+                'NOT APPLICABLE',
+                $item->ic_number,
+                ($item->swift_code === 'MBBEMYKL') ? '' : $item->swift_code,
+                $item->email,
                 config('export_excel.advice_detail') . date('Y/m'),
                 config('export_excel.debit_description') . date('Y/m') . ' for ' . $item->user_id,
                 config('export_excel.credit_description') . date('Y/m')
             ];
         }
 
-        Excel::create($file_name, function ($excel) use ($file_name, $data_excel) {
+        $total = array_sum(array_pluck($data_excel, 3));
 
-            $excel->sheet($file_name, function ($sheet) use ($data_excel) {
-                $sheet->fromArray($data_excel, null, 'A1', false, false);
-            });
-
-        })->export('xls');
+        return view('bonus-route::export')
+            ->withHeader($header)
+            ->withDataExcel($data_excel)
+            ->withTotal($total)
+            ;
     }
 
     public function postSetApprovalsAll()
