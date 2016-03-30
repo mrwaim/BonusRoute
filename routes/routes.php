@@ -7,7 +7,7 @@ Route::group(['prefix' => 'bonus-management'], function () {
         Route::get('list/{filter}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getList');
     });
 
-    Route::group(['middleware' => ['auth.admin']], function () {
+    Route::group(['middleware' => ['role:admin']], function () {
         Route::post('cancel-bonus', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@postCancelBonus');
         Route::post('set-approvals-all', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@postSetApprovalsAll');
         Route::get('set-payments-approvals', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getSetPaymentsApprovals');
