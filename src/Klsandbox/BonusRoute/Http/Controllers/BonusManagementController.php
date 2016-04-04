@@ -314,6 +314,34 @@ class BonusManagementController extends Controller
     {
         $file_name = "bonus_" . date('m') . "_" . date('y') . "_" . $type;
 
+        $data_excel = $this->getExportData($monthly_report_id, $type);
+
+        Excel::create($file_name, function ($excel) use ($file_name, $data_excel) {
+
+            $excel->sheet($file_name, function ($sheet) use ($data_excel) {
+                $sheet->fromArray($data_excel, null, 'A1', false, false);
+            });
+
+        })->export('xls');
+
+    }
+
+    public function getExport($monthly_report_id, $type)
+    {
+        $data_excel = $this->getExportData($monthly_report_id, $type);
+
+        array_shift($data_excel);
+
+        $total = array_sum(array_pluck($data_excel, 3));
+
+        return view('bonus-route::export')
+            ->withDataExcel($data_excel)
+            ->withTotal($total)
+            ;
+    }
+
+    public function getExportData($monthly_report_id, $type)
+    {
         $payments_approvals = MonthlyReport::find($monthly_report_id);
 
         $header = [
@@ -368,21 +396,7 @@ class BonusManagementController extends Controller
             ];
         }
 
-        $total = array_sum(array_pluck($data_excel, 3));
-
-        Excel::create($file_name, function ($excel) use ($file_name, $data_excel) {
-
-            $excel->sheet($file_name, function ($sheet) use ($data_excel) {
-                $sheet->fromArray($data_excel, null, 'A1', false, false);
-            });
-
-        })->export('xls');
-//
-//        return view('bonus-route::export')
-//            ->withHeader($header)
-//            ->withDataExcel($data_excel)
-//            ->withTotal($total)
-//            ;
+        return $data_excel;
     }
 
     public function postSetApprovalsAll()

@@ -13,6 +13,8 @@
                     @if(count($data))
                         <a href="/bonus-management/excel/{{ $report }}/{{ $filter }}" class="btn btn-default">Get
                             Excel</a>
+                        <a href="/bonus-management/txt/{{ $report }}/{{ $filter }}" class="btn btn-default">Get
+                            Txt</a>
                     @endif
                 </p>
             </div>
