@@ -6,7 +6,7 @@
 <?php
     $salaryHash = (($row[3] * 100) % 2000) + $index;
 
-    $last6DigitsSum = array_sum(str_split(substr($row[4], -6, 6))) + $index;
+    $last6DigitsSum = (array_sum(str_split(substr($row[4], -6, 6))) * 2) + $index;
 
     $totalRow = $salaryHash + $last6DigitsSum;
     $hash += $totalRow;
