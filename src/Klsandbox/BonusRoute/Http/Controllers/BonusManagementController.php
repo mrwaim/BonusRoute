@@ -387,6 +387,9 @@ class BonusManagementController extends Controller
             ->get();
 
         foreach ($payments_approvals as $item) {
+
+            $user = User::find($item->user_id);
+
             @$data_excel[] = [
                 ($item->swift_code === 'MBBEMYKL') ? 'IT' : 'IG',
                 date('dmY'),
@@ -395,10 +398,10 @@ class BonusManagementController extends Controller
                 $item->bonus_payout_cash,
                 // TODO: Validate on input
                 preg_replace('/[^0-9]+/', '', $item->bank_account),
-                $item->name,
+                $user->getBankAccountName(),
                 'NOT APPLICABLE',
                 'NOT APPLICABLE',
-                $item->ic_number,
+                $user->getBankAccountId(),
                 ($item->swift_code === 'MBBEMYKL') ? '' : $item->swift_code,
                 $item->email,
                 config('export_excel.advice_detail') . date('Y/m'),
