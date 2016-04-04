@@ -334,10 +334,21 @@ class BonusManagementController extends Controller
 
         $total = array_sum(array_pluck($data_excel, 3));
 
-        return view('bonus-route::export')
+        $content = \View::make('bonus-route::export')
             ->withDataExcel($data_excel)
-            ->withTotal($total)
-            ;
+            ->withTotal($total);
+
+        // Set the name of the text file
+        $filename = "bonus_" . date('m') . "_" . date('y') . "_" . $type . ".txt";
+
+        // Set headers necessary to initiate a download of the textfile, with the specified name
+        $headers = array(
+            'Content-Type' => 'plain/txt',
+            'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
+            'Content-Length' => strlen($content),
+        );
+
+        return \Response::make($content, 200, $headers);
     }
 
     public function getExportData($monthly_report_id, $type)
