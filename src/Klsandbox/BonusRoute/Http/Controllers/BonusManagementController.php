@@ -353,7 +353,12 @@ class BonusManagementController extends Controller
 
     public function getExportData($monthly_report_id, $type)
     {
-        $payments_approvals = MonthlyReport::find($monthly_report_id);
+        $payments_approvals = MonthlyReport::find($monthly_report_id)
+            ->userPaymentsApprovals()
+            ->with(['user', 'user.bank'])
+            ->where('user_type', $type)
+            ->where('approved_state', 'approve')
+            ->get();
 
         $header = [
             'Payment Mode', 'Value Date', 'Customer Reference Number', 'Transaction Amount (RM)',
@@ -364,46 +369,29 @@ class BonusManagementController extends Controller
 
         $data_excel[0] = $header;
 
-        $payments_approvals = $payments_approvals->userPaymentsApprovals()
-            ->select([
-                'users.bank_name',
-                'payments_approvals.user_id',
-                'monthly_user_reports.bonus_payout_cash',
-                'users.bank_account',
-                'users.name',
-                'users.ic_number',
-                'users.email',
-                'banks.swift_code'
-            ])
-            ->where('monthly_user_reports.bonus_payout_cash', '>', 0)
-            ->where('payments_approvals.user_type', $type)
-            ->where('payments_approvals.approved_state', 'approve')
-            ->join('monthly_user_reports', function ($join) {
-                $join->on('payments_approvals.user_id', '=', 'monthly_user_reports.user_id');
-                $join->on('payments_approvals.monthly_report_id', '=', 'monthly_user_reports.monthly_report_id');
-            })
-            ->leftJoin('users', 'payments_approvals.user_id', '=', 'users.id')
-            ->leftJoin('banks', 'users.bank_id', '=', 'banks.id')
-            ->get();
-
         foreach ($payments_approvals as $item) {
+            $monthlyUserReport = MonthlyUserReport::where('monthly_report_id', '=', $monthly_report_id)
+                ->where('user_id', '=', $item->user_id)
+                ->first();
 
-            $user = User::find($item->user_id);
+            if ($monthlyUserReport->bonus_payout_cash == 0)
+            {
+                continue;
+            }
 
             @$data_excel[] = [
-                ($item->swift_code === 'MBBEMYKL') ? 'IT' : 'IG',
+                ($item->user->bank->swift_code === 'MBBEMYKL') ? 'IT' : 'IG',
                 date('dmY'),
-//                $item->user_id,
                 '',
-                $item->bonus_payout_cash,
+                $monthlyUserReport->bonus_payout_cash,
                 // TODO: Validate on input
-                preg_replace('/[^0-9]+/', '', $item->bank_account),
-                $user->getBankAccountName(),
+                preg_replace('/[^0-9]+/', '', $item->user->bank_account),
+                $item->user->getBankAccountName(),
                 'NOT APPLICABLE',
                 'NOT APPLICABLE',
-                $user->getBankAccountId(),
-                ($item->swift_code === 'MBBEMYKL') ? '' : $item->swift_code,
-                $item->email,
+                $item->user->getBankAccountId(),
+                ($item->user->bank->swift_code === 'MBBEMYKL') ? '' : $item->user->bank->swift_code,
+                $item->user->email,
                 config('export_excel.advice_detail') . date('Y/m'),
                 config('export_excel.debit_description') . date('Y/m') . ' for ' . $item->user_id,
                 config('export_excel.credit_description') . date('Y/m')
