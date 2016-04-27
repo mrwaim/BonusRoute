@@ -8,9 +8,7 @@
 @section('content')
 
     <div class="panel panel-default">
-        @if($auth->admin)
-            @include('bonus-route::bonus-tile-partial')
-        @endif
+        @include('bonus-route::bonus-tile-partial')
 
         @include('bonus-route::list-bonus-partial', ['show_awarded_to' => true])
     </div>

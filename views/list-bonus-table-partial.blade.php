@@ -7,10 +7,9 @@
             @if(isset($show_awarded_to) && $show_awarded_to)
                 <th>Awarded To</th>
             @endif
-            <th>Status</th>
-            <th>Workflow Status</th>
-            <th>Bonus Type</th>
-            <th>Bonus Payout</th>
+            <th>Bonus Description</th>
+            <th>Payment Amount</th>
+            <th>Payment Status</th>
         </tr>
         </thead>
         <tbody>
@@ -22,15 +21,9 @@
                     @if(isset($show_awarded_to) && $show_awarded_to)
                         <td>{{$item->user->name}}</td>
                     @endif
-                    <td>{{$item->bonusStatus->name}}</td>
-                    <td>{{$item->workflow_status}}</td>
-                    @if($item->bonusPayout)
-                        <td>{{$item->bonusPayout->friendly_name}}</td>
-                    @else
-                        <td>Bonus not yet chosen</td>
-                        @endif
-                        </td>
-                        <td>{{$item->bonusType->friendly_name}}</td>
+                    <td>{{$item->bonusPayout->friendly_name}}</td>
+                    <td>{{$item->bonusPayout->payout}}</td>
+                    <td></td>
                 </tr>
             @endif
         @endforeach

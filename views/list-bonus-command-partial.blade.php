@@ -58,8 +58,8 @@
                             </td>
 
                             @if(!$show_user)
-                                @if ($item->order->id)
-                                    <td>@olink($item->order)</td>
+                                @if ($item->orderItem->id)
+                                    <td>@olink($item->orderItem->order)</td>
                                 @else
                                     <td>New order</td>
                                 @endif

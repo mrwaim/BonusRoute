@@ -3,6 +3,7 @@
 namespace Klsandbox\BonusRoute\Http\Controllers;
 
 use Illuminate\Support\MessageBag;
+use Klsandbox\OrderModel\Models\OrderItem;
 use Log;
 use App;
 use App\Http\Controllers\Controller;
@@ -10,7 +11,6 @@ use Klsandbox\BillplzRoute\Models\BillplzResponse;
 use App\Models\Bonus;
 use Klsandbox\ReportRoute\Models\MonthlyReport;
 use Klsandbox\ReportRoute\Models\MonthlyUserReport;
-use App\Models\Order;
 use App\Models\PaymentsApprovals;
 use App\Models\User;
 use Klsandbox\ReportRoute\Services\ReportService;
@@ -99,9 +99,13 @@ class BonusManagementController extends Controller
 
         Site::protect($bonus->bonusType, "Bonus Type");
 
+        $rc = new ReportService();
+        $totalBonus = (object)$rc->getTotalBonusPayout();
+
         return view('bonus-route::view-bonus', [
             'user' => $user,
             'item' => $bonus,
+            'totalBonus' => $totalBonus
         ]);
     }
 
@@ -116,7 +120,7 @@ class BonusManagementController extends Controller
                     continue;
                 }
 
-                $res = $this->bonusManager->resolveBonusCommandsForOrderUserDetails(0, new \Carbon\Carbon(), new Order(), $user);
+                $res = $this->bonusManager->resolveBonusCommandsForOrderItemUserDetails(0, new \Carbon\Carbon(), new OrderItem(), $user);
                 $bonusCommands = array_merge($bonusCommands, $res);
             }
 
@@ -138,17 +142,19 @@ class BonusManagementController extends Controller
 
         $bonusCommands = [];
         if (Auth::user()->role->name != 'admin') {
-            $bonusCommands = $this->bonusManager->resolveBonusCommandsForOrderUserDetails(0, new \Carbon\Carbon(), new Order(), Auth::user());
+            $bonusCommands = $this->bonusManager->resolveBonusCommandsForOrderItemUserDetails(0, new \Carbon\Carbon(), new OrderItem(), Auth::user());
         }
 
         $rc = new ReportService();
         $totalBonus = (object)$rc->getTotalBonusPayout();
         $topBonusUser = (object)$rc->getTopBonusUser();
+        $bonusThisMonth = (object)$rc->getBonusThisMonth();
 
         return view('bonus-route::list-bonus')
             ->with('list', $list)
             ->with('bonusCommands', $bonusCommands)
             ->with('totalBonus', $totalBonus)
+            ->with('bonusThisMonth', $bonusThisMonth)
             ->with('topBonusUser', $topBonusUser);
     }
 

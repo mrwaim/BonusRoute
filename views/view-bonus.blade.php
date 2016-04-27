@@ -86,17 +86,17 @@
                                 <div class="bonus-content content2">
                                     @if($item->bonusType->key == 'restock-bonus')
                                         @if($item->parent_bonus_id)
-                                            @olink($item->order), paired with @olink($item->parentBonus->order)
+                                            @olink($item->orderItem->order), paired with @olink($item->parentBonus->orderItem->order)
                                         @elseif (count($item->childBonuses) > 0)
-                                            @olink($item->order), paired from
+                                            @olink($item->orderItem->order), paired from
                                             @foreach ($item->childBonuses as $child)
-                                                @olink($child->order)
+                                                @olink($child->orderItem->order)
                                             @endforeach
                                         @else
-                                            @olink($item->order) (Pair not found)
+                                            @olink($item->orderItem->order) (Pair not found)
                                         @endif
                                     @else
-                                        @olink($item->order)
+                                        @olink($item->orderItem->order)
                                     @endif
                                 </div>
                             </div>
@@ -135,6 +135,32 @@
                                         @endif
                                     @else
                                         Bonus Cancelled
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="bonus">
+                                <div class="bonus-content">
+                                    Bonus Amount
+                                </div>
+                                <div class="bonus-content content2">
+                                    {{ $item->bonusPayout->payout }}
+                                </div>
+                            </div>
+
+                            <div class="bonus">
+                                <div class="bonus-content">
+                                    Total Bonus Amount
+                                </div>
+                                <div class="bonus-content content2">
+                                    RM {{$totalBonus->cash}}
+
+                                    @if($totalBonus->gold)<br/>
+                                        Gold {{$totalBonus->gold}} gm<br/>
+                                    @endif
+
+                                    @if($totalBonus->bonusNotChosen)
+                                        Not selected {{$totalBonus->bonusNotChosen}}
                                     @endif
                                 </div>
                             </div>
