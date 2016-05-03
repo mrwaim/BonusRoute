@@ -7,7 +7,7 @@
 @section('content')
     @if(empty($payments_approvals))
         <div class="row">
-            <div class="alert alert-success">
+            <div class="alert alert-info">
                 <p class="center">
                     Bonus Payment Processing Completed.
                     @if(count($data))

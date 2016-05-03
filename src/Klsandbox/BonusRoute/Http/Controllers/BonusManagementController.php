@@ -74,8 +74,6 @@ class BonusManagementController extends Controller
 
     public function postCancelBonus()
     {
-        User::adminGuard();
-
         \DB::transaction(function () use (&$bonus) {
             $bonusId = Input::get('bonus_id');
             $bonus = Bonus::find($bonusId);

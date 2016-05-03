@@ -1,3 +1,4 @@
+@if($config->has_bonus)
 @include('elements.side-menu-parent-item', [
 'folder' => 'bonus-management',
 'menu' => 'Bonus',
@@ -15,3 +16,4 @@
 'menu' => 'Bonus Details',
 ]
 ]])
+@endif

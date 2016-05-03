@@ -1,6 +1,6 @@
 <?php
 
-Route::group(['prefix' => 'bonus-management'], function () {
+Route::group(['prefix' => 'bonus-management', 'middleware' => 'config:has_bonus'], function () {
     Route::group(['middleware' => ['auth']], function () {
         Route::get('choose-payout/{bonus_id}/{bonus_payout_id}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getChoosePayout');
         Route::get('view/{bonus_id}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getView');
