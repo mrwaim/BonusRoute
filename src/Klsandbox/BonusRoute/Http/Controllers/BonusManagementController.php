@@ -484,7 +484,8 @@ class BonusManagementController extends Controller
         $input = Input::all();
 
         $messages = \Validator::make($input, [
-            'name' => 'required',
+            'name' => 'required|unique:bonus_categories,name,NULL,id,site_id,'.Site::id(),
+            'friendly_name' => 'required',
             'description' => 'required'
         ]);
 
@@ -496,8 +497,8 @@ class BonusManagementController extends Controller
         }
 
         $this->bonusCategoryModel->create([
-            'name' => str_slug($input['name']),
-            'friendly_name' => $input['name'],
+            'name' => $input['name'],
+            'friendly_name' => $input['friendly_name'],
             'description' => $input['description'],
             'site_id' => Site::id(),
         ]);

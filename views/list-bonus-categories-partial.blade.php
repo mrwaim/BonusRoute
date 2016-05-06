@@ -4,6 +4,7 @@
         <tr>
             <th>No</th>
             <th>Name</th>
+            <th>Friendly Name</th>
             <th>Description</th>
             @if($auth->admin)
                 <th>Delete</th>
@@ -15,6 +16,7 @@
         @foreach($bonusCategories as $item)
             <tr>
                 <td>{{ $no++ }}</td>
+                <td>{{ $item->name }}</td>
                 <td>{{ $item->friendly_name }}</td>
                 <td>{{ $item->description }}</td>
                 @if($auth->admin)
