@@ -17,5 +17,13 @@
 ], [
 'page' => 'view',
 'menu' => 'Bonus Details',
+],[
+'page' => 'list-bonus-categories',
+'url' => 'list-bonus-categories',
+'menu' => 'View Bonus Categories'
+], [
+'page' => 'create-bonus-category',
+'url' => 'create-bonus-category',
+'menu' => 'Create Bonus Category'
 ]
 ]])

@@ -2,6 +2,7 @@
 
 namespace Klsandbox\BonusRoute\Http\Controllers;
 
+use App\Models\BonusCategory;
 use Illuminate\Support\MessageBag;
 use Klsandbox\OrderModel\Models\OrderItem;
 use Log;
@@ -37,16 +38,22 @@ class BonusManagementController extends Controller
      */
 
     protected $bonusManager;
+    /**
+     * @var BonusCategory
+     */
+    private $bonusCategoryModel;
 
     /**
      * Create a new controller instance.
      *
-     * @return void
+     * @param BonusManager $bonusManager
+     * @param BonusCategory $bonusCategoryModel
      */
-    public function __construct(BonusManager $bonusManager)
+    public function __construct(BonusManager $bonusManager, BonusCategory $bonusCategoryModel)
     {
         $this->middleware('auth');
         $this->bonusManager = $bonusManager;
+        $this->bonusCategoryModel = $bonusCategoryModel;
     }
 
     //TODO: Secure this - bonus payout must match choices
@@ -448,5 +455,72 @@ class BonusManagementController extends Controller
         }
 
         return back();
+    }
+
+    /**
+     * Display page list bonus categories
+     * @return string
+     */
+    public function getListBonusCategories()
+    {
+        return view('bonus-route::list-bonus-categories')
+            ->with('bonusCategories', BonusCategory::forSite()->get());
+    }
+
+    /**
+     * Display page list bonus categories
+     * @return string
+     */
+    public function getCreateBonusCategory()
+    {
+        return view('bonus-route::create-bonus-category');
+    }
+
+    /**
+     * Save new bonus category
+     */
+    public function postCreateBonusCategory()
+    {
+        $input = Input::all();
+
+        $messages = \Validator::make($input, [
+            'name' => 'required',
+            'description' => 'required'
+        ]);
+
+        if ($messages->messages()->count()) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($messages);
+        }
+
+        $this->bonusCategoryModel->create([
+            'name' => str_slug($input['name']),
+            'friendly_name' => $input['name'],
+            'description' => $input['description'],
+            'site_id' => Site::id(),
+        ]);
+
+        Session::flash('success_message', 'Bonus category has been created.');
+
+        return Redirect::to('/bonus-management/list-bonus-categories');
+    }
+
+    public function getDeleteBonusCategory($bonusCategory)
+    {
+        $bonusCategory = $this->bonusCategoryModel::forSite()
+            ->find($bonusCategory);
+
+
+        if(! $bonusCategory){
+            App::abort(500, "Category not found");
+        }
+
+        $bonusCategory->delete();
+
+        Session::flash('success_message', 'Bonus Category has been deleted.');
+
+        return Redirect::to('/bonus-management/list-bonus-categories');
     }
 }
