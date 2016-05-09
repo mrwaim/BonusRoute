@@ -15,5 +15,19 @@ Route::group(['prefix' => 'bonus-management', 'middleware' => 'config:has_bonus'
         Route::get('txt/{monthly_report_id}/{type}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getExport');
         Route::get('list-payments/{year}/{month}/{filter}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getListPayments');
         Route::get('bonus-payments-list', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getBonusPaymentsList');
+
+
+        /**
+         * Bonus categories
+         */
+        // listing bonus category
+        Route::get('list-bonus-categories', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getListBonusCategories');
+
+        // create bonus categories
+        Route::get('create-bonus-category', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getCreateBonusCategory');
+        Route::post('create-bonus-category', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@postCreateBonusCategory');
+
+        //delete bonus category
+        Route::get('delete-bonus-category/{bonus_category}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getDeleteBonusCategory');
     });
 });
