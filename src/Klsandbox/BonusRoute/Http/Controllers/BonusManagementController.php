@@ -38,6 +38,7 @@ class BonusManagementController extends Controller
      */
 
     protected $bonusManager;
+
     /**
      * @var BonusCategory
      */
@@ -499,8 +500,7 @@ class BonusManagementController extends Controller
         $this->bonusCategoryModel->create([
             'name' => $input['name'],
             'friendly_name' => $input['friendly_name'],
-            'description' => $input['description'],
-            'site_id' => Site::id(),
+            'description' => $input['description']
         ]);
 
         Session::flash('success_message', 'Bonus category has been created.');
