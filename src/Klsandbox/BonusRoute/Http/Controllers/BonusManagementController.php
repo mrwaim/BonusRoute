@@ -508,11 +508,9 @@ class BonusManagementController extends Controller
         return Redirect::to('/bonus-management/list-bonus-categories');
     }
 
-    public function getDeleteBonusCategory($bonusCategory)
+    public function getDeleteBonusCategory($id)
     {
-        $bonusCategory = $this->bonusCategoryModel::forSite()
-            ->find($bonusCategory);
-
+        $bonusCategory = BonusCategory::find($id);
 
         if(! $bonusCategory){
             App::abort(500, "Category not found");
