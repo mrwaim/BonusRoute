@@ -64,11 +64,11 @@ class BonusManagementController extends Controller
         Site::protect($bonus);
 
         if (Auth::user()->id != $bonus->awarded_to_user_id) {
-            App::abort(403, "Unauthorized.");
+            App::abort(403, 'Unauthorized.');
         }
 
         if ($bonus->bonusPayout) {
-            App::abort(403, "Invalid..");
+            App::abort(403, 'Invalid..');
         }
 
         $bonus->workflow_status = 'ProcessedByReceiver';
@@ -95,23 +95,22 @@ class BonusManagementController extends Controller
         return Redirect::to('/bonus-management/view/' . $bonus->id);
     }
 
-
     public function getView($bonusId)
     {
         $user = Auth::user();
 
         $bonus = Bonus::find($bonusId);
-        Site::protect($bonus, "Bonus");
+        Site::protect($bonus, 'Bonus');
 
-        Site::protect($bonus->bonusType, "Bonus Type");
+        Site::protect($bonus->bonusType, 'Bonus Type');
 
         $rc = new ReportService();
-        $totalBonus = (object)$rc->getTotalBonusPayout();
+        $totalBonus = (object) $rc->getTotalBonusPayout();
 
         return view('bonus-route::view-bonus', [
             'user' => $user,
             'item' => $bonus,
-            'totalBonus' => $totalBonus
+            'totalBonus' => $totalBonus,
         ]);
     }
 
@@ -152,9 +151,9 @@ class BonusManagementController extends Controller
         }
 
         $rc = new ReportService();
-        $totalBonus = (object)$rc->getTotalBonusPayout();
-        $topBonusUser = (object)$rc->getTopBonusUser();
-        $bonusThisMonth = (object)$rc->getBonusThisMonth();
+        $totalBonus = (object) $rc->getTotalBonusPayout();
+        $topBonusUser = (object) $rc->getTopBonusUser();
+        $bonusThisMonth = (object) $rc->getBonusThisMonth();
 
         return view('bonus-route::list-bonus')
             ->with('list', $list)
@@ -214,7 +213,6 @@ class BonusManagementController extends Controller
             })
             ->groupBy('monthly_user_reports.user_id');
 
-
         switch ($filter) {
             case 'online':
                 $report = $report->whereIn('monthly_user_reports.user_id', $online_users);
@@ -256,21 +254,21 @@ class BonusManagementController extends Controller
     {
         $user = User::find($user_id);
 
-        if (!preg_match('/^[0-9]+$/', $user->bank_account))
-        {
+        if (!preg_match('/^[0-9]+$/', $user->bank_account)) {
             Log::info("Unable to update user:$user->id - bank account not match");
+
             return false;
         }
 
-        if (!preg_match('/^[0-9]{12}$/', $user->ic_number))
-        {
+        if (!preg_match('/^[0-9]{12}$/', $user->ic_number)) {
             Log::info("Unable to update user:$user->id - bank account not match");
+
             return false;
         }
 
-        if (!$user->bank_id)
-        {
+        if (!$user->bank_id) {
             Log::info("Unable to update user:$user->id - bank id is not set");
+
             return false;
         }
 
@@ -295,10 +293,9 @@ class BonusManagementController extends Controller
             App::abort(422, 'Invalid data');
         }
 
-        if (!$this->validateUser($report->user_id) && Input::get('status') == 'approve')
-        {
+        if (!$this->validateUser($report->user_id) && Input::get('status') == 'approve') {
             $messages = new MessageBag();
-            $messages->add('user', "User payment details not valid");
+            $messages->add('user', 'User payment details not valid');
 
             return back()->withErrors($messages);
         }
@@ -311,7 +308,7 @@ class BonusManagementController extends Controller
                 'user_id' => $report->user_id,
                 'approved_state' => Input::get('status'),
                 'monthly_report_id' => $report->monthly_report_id,
-                'user_type' => Input::get('user_type')
+                'user_type' => Input::get('user_type'),
             ]);
         } else {
             $payments_approvals->approved_state = Input::get('status');
@@ -324,7 +321,7 @@ class BonusManagementController extends Controller
 
     public function getExcel($monthly_report_id, $type)
     {
-        $file_name = "bonus_" . date('m') . "_" . date('y') . "_" . $type;
+        $file_name = 'bonus_' . date('m') . '_' . date('y') . '_' . $type;
 
         $data_excel = $this->getExportData($monthly_report_id, $type);
 
@@ -335,7 +332,6 @@ class BonusManagementController extends Controller
             });
 
         })->export('xls');
-
     }
 
     public function getExport($monthly_report_id, $type)
@@ -351,7 +347,7 @@ class BonusManagementController extends Controller
             ->withTotal($total);
 
         // Set the name of the text file
-        $filename = "bonus_" . date('m') . "_" . date('y') . "_" . $type . ".txt";
+        $filename = 'bonus_' . date('m') . '_' . date('y') . '_' . $type . '.txt';
 
         // Set headers necessary to initiate a download of the textfile, with the specified name
         $headers = array(
@@ -376,7 +372,7 @@ class BonusManagementController extends Controller
             'Payment Mode', 'Value Date', 'Customer Reference Number', 'Transaction Amount (RM)',
             'Credit Account Number', 'Beneficiary Name 1', 'Beneficiary Name 2', 'Beneficiary Name 3',
             'ID No (New IC, Old IC, Passport, Business Registration No)', 'Beneficiary Bank Code', 'Email',
-            'Advice Detail', 'Debit Description', 'Credit Description'
+            'Advice Detail', 'Debit Description', 'Credit Description',
         ];
 
         $data_excel[0] = $header;
@@ -386,8 +382,7 @@ class BonusManagementController extends Controller
                 ->where('user_id', '=', $item->user_id)
                 ->first();
 
-            if ($monthlyUserReport->bonus_payout_cash == 0)
-            {
+            if ($monthlyUserReport->bonus_payout_cash == 0) {
                 continue;
             }
 
@@ -406,7 +401,7 @@ class BonusManagementController extends Controller
                 $item->user->email,
                 config('export_excel.advice_detail') . date('Y/m'),
                 config('export_excel.debit_description') . date('Y/m') . ' for ' . $item->user_id,
-                config('export_excel.credit_description') . date('Y/m')
+                config('export_excel.credit_description') . date('Y/m'),
             ];
         }
 
@@ -430,9 +425,7 @@ class BonusManagementController extends Controller
         $reports = MonthlyUserReport::where('monthly_report_id', $monthly_report_id)->get();
 
         foreach ($reports as $itm) {
-
-            if (!$this->validateUser($itm->user_id))
-            {
+            if (!$this->validateUser($itm->user_id)) {
                 continue;
             }
 
@@ -446,7 +439,7 @@ class BonusManagementController extends Controller
                     'user_id' => $itm->user_id,
                     'approved_state' => 'approve',
                     'monthly_report_id' => $monthly_report_id,
-                    'user_type' => $type
+                    'user_type' => $type,
                 ]);
             } else {
                 $payments_approvals->approved_state = 'approve';
@@ -460,6 +453,7 @@ class BonusManagementController extends Controller
 
     /**
      * Display page list bonus categories
+     *
      * @return string
      */
     public function getListBonusCategories()
@@ -470,6 +464,7 @@ class BonusManagementController extends Controller
 
     /**
      * Display page list bonus categories
+     *
      * @return string
      */
     public function getCreateBonusCategory()
@@ -487,7 +482,7 @@ class BonusManagementController extends Controller
         $messages = \Validator::make($input, [
             'name' => 'required|unique:bonus_categories,name,NULL,id,site_id,'.Site::id(),
             'friendly_name' => 'required',
-            'description' => 'required'
+            'description' => 'required',
         ]);
 
         if ($messages->messages()->count()) {
@@ -500,7 +495,7 @@ class BonusManagementController extends Controller
         $this->bonusCategoryModel->create([
             'name' => $input['name'],
             'friendly_name' => $input['friendly_name'],
-            'description' => $input['description']
+            'description' => $input['description'],
         ]);
 
         Session::flash('success_message', 'Bonus category has been created.');
@@ -512,8 +507,8 @@ class BonusManagementController extends Controller
     {
         $bonusCategory = BonusCategory::find($id);
 
-        if(! $bonusCategory){
-            App::abort(500, "Category not found");
+        if (!$bonusCategory) {
+            App::abort(500, 'Category not found');
         }
 
         $bonusCategory->delete();
