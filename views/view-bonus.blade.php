@@ -79,27 +79,30 @@
                                     {{$item->updated_at}}
                                 </div>
                             </div>
-                            <div class="bonus">
-                                <div class="bonus-content">
-                                    Order
-                                </div>
-                                <div class="bonus-content content2">
-                                    @if($item->bonusType->key == 'restock-bonus')
-                                        @if($item->parent_bonus_id)
-                                            @olink($item->orderItem->order), paired with @olink($item->parentBonus->orderItem->order)
-                                        @elseif (count($item->childBonuses) > 0)
-                                            @olink($item->orderItem->order), paired from
-                                            @foreach ($item->childBonuses as $child)
-                                                @olink($child->orderItem->order)
-                                            @endforeach
+                            @if ($item->orderItem->order)
+                                <div class="bonus">
+                                    <div class="bonus-content">
+                                        Order
+                                    </div>
+                                    <div class="bonus-content content2">
+                                        @if($item->bonusType->key == 'restock-bonus')
+                                            @if($item->parent_bonus_id)
+                                                @olink($item->orderItem->order), paired
+                                                with @olink($item->parentBonus->orderItem->order)
+                                            @elseif (count($item->childBonuses) > 0)
+                                                @olink($item->orderItem->order), paired from
+                                                @foreach ($item->childBonuses as $child)
+                                                    @olink($child->orderItem->order)
+                                                @endforeach
+                                            @else
+                                                @olink($item->orderItem->order) (Pair not found)
+                                            @endif
                                         @else
-                                            @olink($item->orderItem->order) (Pair not found)
+                                            @olink($item->orderItem->order)
                                         @endif
-                                    @else
-                                        @olink($item->orderItem->order)
-                                    @endif
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                             <div class="bonus">
                                 <div class="bonus-content">
                                     Payout
@@ -156,7 +159,7 @@
                                     RM {{$totalBonus->cash}}
 
                                     @if($totalBonus->gold)<br/>
-                                        Gold {{$totalBonus->gold}} gm<br/>
+                                    Gold {{$totalBonus->gold}} gm<br/>
                                     @endif
 
                                     @if($totalBonus->bonusNotChosen)
