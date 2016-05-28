@@ -134,12 +134,14 @@ class BonusManagementController extends Controller
 
         if (Auth::user()->role->name == 'admin') {
             $list = Bonus::forSite()
+                ->with('bonusStatus', 'bonusPayout', 'bonusType')
                 ->orderBy('created_at', 'DESC')
                 ->paginate(20);
         } else {
             $userIds = User::userIdsForFilter($filter);
 
             $list = Bonus::forSite()
+                ->with('bonusStatus', 'bonusPayout', 'bonusType')
                 ->whereIn('awarded_to_user_id', $userIds)
                 ->orderBy('created_at', 'DESC')
                 ->paginate(20);
@@ -147,7 +149,7 @@ class BonusManagementController extends Controller
 
         $bonusCommands = [];
         if (Auth::user()->role->name != 'admin') {
-            $bonusCommands = $this->bonusManager->resolveBonusCommandsForOrderItemUserDetails(0, new \Carbon\Carbon(), new OrderItem(), Auth::user());
+            $bonusCommands = $this->bonusManager->resolveBonusCommandsForOrderItemUserDetails(0, new \Carbon\Carbon(), new OrderItem(), Auth::user(), BonusCategory::gStar());
         }
 
         $rc = new ReportService();
