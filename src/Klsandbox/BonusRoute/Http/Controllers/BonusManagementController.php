@@ -125,7 +125,8 @@ class BonusManagementController extends Controller
                     continue;
                 }
 
-                $res = $this->bonusManager->resolveBonusCommandsForOrderItemUserDetails(0, new \Carbon\Carbon(), new OrderItem(), $user);
+                // TODO: This is based on what is reordered
+                $res = $this->bonusManager->resolveBonusCommandsForOrderItemUserDetails(0, new \Carbon\Carbon(), new OrderItem(), $user, new BonusCategory());
                 $bonusCommands = array_merge($bonusCommands, $res);
             }
 
