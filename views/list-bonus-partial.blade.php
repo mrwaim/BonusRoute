@@ -1,5 +1,5 @@
 <div class="row">
-    @if(!$auth->admin)
+    @if(!$auth->admin && $auth->stockist)
         <div class="col-xs-6 col-md-6 col-lg-4 restock-btn">
             <a class="btn btn-primary btn-block restock-bttn" href='/order-management/restock'>Restock</a>
         </div>
