@@ -263,7 +263,7 @@ class BonusManagementController extends Controller
             return false;
         }
 
-        if (!preg_match('/^[0-9]{12}$/', $user->ic_number)) {
+        if (!preg_match('/^[0-9]{12}|stockist|agent$/', $user->ic_number)) {
             Log::info("Unable to update user:$user->id - bank account not match");
 
             return false;
