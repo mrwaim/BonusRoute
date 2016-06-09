@@ -7,6 +7,10 @@
 'url' => 'list/all',
 'menu' => 'Bonus Awarded',
 ], [
+'filter' => 'org',
+'url' => 'list/org',
+'menu' => 'Bonus In your organization',
+], [
 'filter' => 'reorder',
 'url' => 'list/reorder',
 'menu' => 'Bonus Upon Reorder',
