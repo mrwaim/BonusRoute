@@ -21,8 +21,13 @@
                     @if(isset($show_awarded_to) && $show_awarded_to)
                         <td>{{$item->user->name}}</td>
                     @endif
-                    <td>{{$item->bonusPayout->friendly_name}}</td>
-                    <td>{{$item->bonusPayout->payout}}</td>
+                    @if($item->bonusPayout)
+                        <td>{{$item->bonusPayout->friendly_name}}</td>
+                        <td>{{$item->bonusPayout->payout}}</td>
+                    @else
+                        <td></td>
+                        <td></td>
+                    @endif
                     <td></td>
                 </tr>
             @endif

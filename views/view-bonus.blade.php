@@ -147,7 +147,9 @@
                                     Bonus Amount
                                 </div>
                                 <div class="bonus-content content2">
-                                    {{ $item->bonusPayout->payout }}
+                                    @if ($item->bonusPayout)
+                                        {{ $item->bonusPayout->payout }}
+                                    @endif
                                 </div>
                             </div>
 
