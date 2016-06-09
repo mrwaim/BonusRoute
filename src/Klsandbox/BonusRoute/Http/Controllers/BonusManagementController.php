@@ -133,8 +133,14 @@ class BonusManagementController extends Controller
             return view('bonus-route::list-reorder-bonus')->with('bonus_commands', $bonusCommands);
         }
 
-        if (Auth::user()->role->name == 'admin') {
+        if (Auth::user()->role->name == 'admin' && $filter == 'all') {
             $list = Bonus::forSite()
+                ->with('bonusStatus', 'bonusPayout', 'bonusType')
+                ->orderBy('created_at', 'DESC')
+                ->paginate(20);
+        } elseif ($filter == 'org') {
+            $list = Bonus::forSite()
+                ->where('awarded_by_user_id', Auth::user()->id)
                 ->with('bonusStatus', 'bonusPayout', 'bonusType')
                 ->orderBy('created_at', 'DESC')
                 ->paginate(20);
@@ -163,7 +169,8 @@ class BonusManagementController extends Controller
             ->with('bonusCommands', $bonusCommands)
             ->with('totalBonus', $totalBonus)
             ->with('bonusThisMonth', $bonusThisMonth)
-            ->with('topBonusUser', $topBonusUser);
+            ->with('topBonusUser', $topBonusUser)
+            ->with('filter', $filter);
     }
 
     public function getListPayments($year, $month, $filter)
