@@ -15,9 +15,6 @@
             <h2 class="panel-title">Bonus Payments List</h2>
         </header>
         <div class="panel-body">
-            <a href="{{ route('bonus-management.bulk-pay') }}" class="btn btn-primary">Export Unpaid Bonus</a>
-            <br>
-            <br>
             <div class="table-responsive">
                 <table class="{{isset($table_class) ? $table_class : 'table table-bordered table-striped table-condensed mb-none'}}">
                     <thead>

@@ -35,11 +35,12 @@
                 <table class="{{isset($table_class) ? $table_class : 'table table-bordered table-striped table-condensed mb-none'}}">
                     <thead>
                     <tr>
-                        <th>User</th>
-                        <th>Amount of Bonus</th>
-                        <th>Amount of Orders</th>
-                        <th>Amount of Introductions</th>
-                        <th>Action</th>
+                        <th class="text-center">User</th>
+                        <th class="text-center">Amount of Bonus</th>
+                        <th class="text-center">Amount of Orders</th>
+                        <th class="text-center">Amount of Introductions</th>
+                        <th class="text-center">Approval</th>
+                        <th class="text-center">Payment</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -59,6 +60,13 @@
                                 <a href="/bonus-management/set-payments-approvals?status=not-reviewed&id={{ $itm->id }}&user_type={{ $user_type }}"
                                    class="set-list-payments {{ ($itm->approved_state === 'not-reviewed' || empty($itm->approved_state))? 'text-bold':'' }}">not
                                     reviewed</a>
+                            </td>
+                            <td>
+                                <a href="{{ route('bonus-management.bulk-pay', ['status' => 'paid', 'id'=> $itm->id, 'user_type' => $user_type]) }}"
+                                   class="set-list-payments {{ ($itm->payment_state === 'paid')? 'text-bold':'' }}">Paid</a>
+                                /
+                                <a href="{{ route('bonus-management.bulk-pay', ['status' => 'unpaid', 'id'=> $itm->id, 'user_type' => $user_type]) }}"
+                                   class="set-list-payments {{ ($itm->payment_state === 'unpaid')? 'text-bold':'' }}">Unpaid</a>
                             </td>
                         </tr>
                     @endforeach
