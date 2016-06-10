@@ -13,6 +13,7 @@
                     @if(count($data))
                         <a href="/bonus-management/excel/{{ $report }}/{{ $filter }}" class="btn btn-default">Get
                             Excel</a>
+                        <a href="/bonus-management/bulk-pay/{{ $report }}/{{ $filter }}" class="btn btn-default">Billplz Format</a>
                         <a href="/bonus-management/txt/{{ $report }}/{{ $filter }}" class="btn btn-default">Get
                             Txt</a>
                     @endif
@@ -62,11 +63,11 @@
                                     reviewed</a>
                             </td>
                             <td>
-                                <a href="{{ route('bonus-management.bulk-pay', ['status' => 'paid', 'id'=> $itm->id, 'user_type' => $user_type]) }}"
+                                <a href="{{ route('bonus-management.payment-state', ['status' => 'paid', 'id'=> $itm->id, 'user_type' => $user_type]) }}"
                                    class="set-list-payments {{ ($itm->payment_state === 'paid')? 'text-bold':'' }}">Paid</a>
                                 /
-                                <a href="{{ route('bonus-management.bulk-pay', ['status' => 'unpaid', 'id'=> $itm->id, 'user_type' => $user_type]) }}"
-                                   class="set-list-payments {{ ($itm->payment_state === 'unpaid')? 'text-bold':'' }}">Unpaid</a>
+                                <a href="{{ route('bonus-management.payment-state', ['status' => 'unpaid', 'id'=> $itm->id, 'user_type' => $user_type]) }}"
+                                   class="set-list-payments {{ ($itm->payment_state === 'unpaid' || empty($itm->approved_state))? 'text-bold':''}}">Unpaid</a>
                             </td>
                         </tr>
                     @endforeach

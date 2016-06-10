@@ -3,6 +3,7 @@
 namespace Klsandbox\BonusRoute\Http\Controllers;
 
 use App\Models\BonusCategory;
+use Illuminate\Support\Fluent;
 use Illuminate\Support\MessageBag;
 use Klsandbox\OrderModel\Models\OrderItem;
 use Log;
@@ -530,7 +531,7 @@ class BonusManagementController extends Controller
         return Redirect::to('/bonus-management/list-bonus-categories');
     }
 
-    public function bulkPay()
+    public function paymentState()
     {
         $validate = \Validator::make(Input::all(), [
             'id' => 'required|numeric',
@@ -573,36 +574,47 @@ class BonusManagementController extends Controller
         }
 
         return back();
+    }
 
-//        $users = User::whereHas('bonuses', function($q){
-//            $q->whereNull('paid_at');
-//            })
-//            ->with(['bonuses' => function($q){
-//                $q->whereNull('paid_at');
-//            }])
-//            ->get();
-//
-//        if(! $users->count()){
-//            App::abort(500, 'No unpaid bonus');
-//        }
-//
-//        foreach($users as $user){
-//            foreach($user->bonuses as $bonus)
-//            {
-//                $bonus->workflow_status = 'Paid';
-//                $bonus->paid_at = Carbon::now();
-//                $bonus->save();
-//            }
-//        }
-//
-//
-//
-//        Excel::create('billplz-bulk-pay', function($excel) use ($users){
-//            $excel->sheet('Sheet1', function($sheet) use ($users){
-//                $sheet->loadView('bonus-route::bulk-pay', ['users' => $users]);
-//            });
-//        })->export('xls');
+    public function bulkPay($monthlyReportId, $type)
+    {
+        $file_name = 'bonus_' . date('m') . '_' . date('y') . '_' . $type;
 
+        $payments_approvals = MonthlyReport::find($monthlyReportId)
+            ->userPaymentsApprovals()
+            ->with(['user', 'user.bank'])
+            ->where('user_type', $type)
+            ->where('payment_state', 'paid')
+            ->get();
+
+        $data_excel = [];
+        foreach ($payments_approvals as $item) {
+            $monthlyUserReport = MonthlyUserReport::where('monthly_report_id', '=', $monthlyReportId)
+                ->where('user_id', '=', $item->user_id)
+                ->first();
+
+            if ($monthlyUserReport->bonus_payout_cash == 0) {
+                continue;
+            }
+
+            @$data_excel[] = new Fluent([
+                'name' => $item->user->name,
+                'total' => $monthlyUserReport->bonus_payout_cash,
+                'email' => $item->user->email,
+                'phone' => $item->user->phone,
+                'bank_account' => $item->user->bank_account,
+                'id_number' => $item->user->ic_number,
+                'due_date' => Carbon::now()->format('d M Y'),
+            ]);
+        }
+
+        $users = $data_excel;
+
+        Excel::create('billplz-bulk-pay', function($excel) use ($users){
+            $excel->sheet('Sheet1', function($sheet) use ($users){
+                $sheet->loadView('bonus-route::bulk-pay', ['users' => $users]);
+            });
+        })->export('xls');
 
     }
 }

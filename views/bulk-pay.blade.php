@@ -11,22 +11,13 @@
     </tr>
     @foreach($users as $user)
     <tr>
-        <td>-</td>
+        <td>Bonus</td>
         <td>{{ $user->name }}</td>
         <td>{{ $user->email }}</td>
         <td>{{ $user->phone }}</td>
-        <td>
-            <?php
-            $total = 0;
-            foreach($user->bonuses as $bonus){
-                $total += $bonus->bonusPayout->currency_amount;
-            }
-
-            ?>
-            {{ $total }}
-        </td>
-        <td>-</td>
-        <td>-</td>
+        <td>{{ $user->total }}</td>
+        <td>{{ $user->due_date }}</td>
+        <td>{{ $user->id_number }}</td>
         <td>{{ $user->bank_account }}</td>
     </tr>
     @endforeach

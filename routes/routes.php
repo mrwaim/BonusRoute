@@ -7,7 +7,9 @@ Route::group(['prefix' => 'bonus-management', 'as' => 'bonus-management.','middl
         Route::get('list/{filter}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getList');
 
         //bonus-management.bulk-pay
-        Route::get('bulk-pay', ['as' => 'bulk-pay', 'uses' => '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@bulkPay']);
+        Route::get('bulk-pay/{monthlyReportId}/{type}', ['as' => 'bulk-pay', 'uses' => '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@bulkPay']);
+        //bonus-management.payment-state
+        Route::get('payment-state', ['as' => 'payment-state', 'uses' => '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@paymentState']);
     });
 
     Route::group(['middleware' => ['role:admin']], function () {
