@@ -527,4 +527,38 @@ class BonusManagementController extends Controller
 
         return Redirect::to('/bonus-management/list-bonus-categories');
     }
+
+    public function bulkPay()
+    {
+        $users = User::whereHas('bonuses', function($q){
+            $q->whereNull('paid_at');
+            })
+            ->with(['bonuses' => function($q){
+                $q->whereNull('paid_at');
+            }])
+            ->get();
+
+        if(! $users->count()){
+            App::abort(500, 'No unpaid bonus');
+        }
+
+        foreach($users as $user){
+            foreach($user->bonuses as $bonus)
+            {
+                $bonus->workflow_status = 'Paid';
+                $bonus->paid_at = Carbon::now();
+                $bonus->save();
+            }
+        }
+
+
+
+        Excel::create('billplz-bulk-pay', function($excel) use ($users){
+            $excel->sheet('Sheet1', function($sheet) use ($users){
+                $sheet->loadView('bonus-route::bulk-pay', ['users' => $users]);
+            });
+        })->export('xls');
+
+
+    }
 }
