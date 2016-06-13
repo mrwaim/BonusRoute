@@ -67,7 +67,7 @@
                                    class="set-list-payments {{ ($itm->payment_state === 'paid')? 'text-bold':'' }}">Paid</a>
                                 /
                                 <a href="{{ route('bonus-management.payment-state', ['status' => 'unpaid', 'id'=> $itm->id, 'user_type' => $user_type]) }}"
-                                   class="set-list-payments {{ ($itm->payment_state === 'unpaid' || empty($itm->approved_state))? 'text-bold':''}}">Unpaid</a>
+                                   class="set-list-payments {{ ($itm->payment_state === 'unpaid' || empty($itm->payment_state))? 'text-bold':''}}">Unpaid</a>
                             </td>
                         </tr>
                     @endforeach

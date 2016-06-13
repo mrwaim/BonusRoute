@@ -584,8 +584,12 @@ class BonusManagementController extends Controller
             ->userPaymentsApprovals()
             ->with(['user', 'user.bank'])
             ->where('user_type', $type)
-            ->where('payment_state', 'paid')
-            ->get();
+            ->where('approved_state', 'approve');
+
+        $payments_approvals = $payments_approvals->where(function ($q) {
+            $q->where('payment_state', 'unpaid')
+            ->orWhere('payment_state', null);
+        })->get();
 
         $data_excel = [];
         foreach ($payments_approvals as $item) {
@@ -610,8 +614,9 @@ class BonusManagementController extends Controller
 
         $users = $data_excel;
 
-        Excel::create('billplz-bulk-pay', function($excel) use ($users){
-            $excel->sheet('Sheet1', function($sheet) use ($users){
+
+        Excel::create('billplz-bulk-pay', function ($excel) use ($users) {
+            $excel->sheet('Sheet1', function ($sheet) use ($users) {
                 $sheet->loadView('bonus-route::bulk-pay', ['users' => $users]);
             });
         })->export('xls');
