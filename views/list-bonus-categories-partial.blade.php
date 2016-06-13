@@ -6,6 +6,7 @@
             <th>Name</th>
             <th>Friendly Name</th>
             <th>Description</th>
+            <th>Is HQ</th>
             @if($auth->admin)
                 <th>Delete</th>
             @endif
@@ -19,6 +20,7 @@
                 <td>{{ $item->name }}</td>
                 <td>{{ $item->friendly_name }}</td>
                 <td>{{ $item->description }}</td>
+                <td>{{ $item->is_hq }}</td>
                 @if($auth->admin)
                     <td>
                         <a href="/bonus-management/delete-bonus-category/{{ $item->id }}" class="panel-action panel-action-dismiss"></a>
