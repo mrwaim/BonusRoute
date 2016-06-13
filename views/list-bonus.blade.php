@@ -21,7 +21,7 @@
         @include('bonus-route::list-bonus-partial', ['show_awarded_to' => true])
     </div>
 
-    @if(!$auth->admin)
+    @if(!$auth->admin && $filter == 'me')
         <div class="panel panel-default">
             @include('bonus-route::list-bonus-command-partial', ['list' => $bonusCommands, 'show_user' => false])
         </div>
