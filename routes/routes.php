@@ -1,10 +1,15 @@
 <?php
 
-Route::group(['prefix' => 'bonus-management', 'middleware' => 'config:has_bonus'], function () {
+Route::group(['prefix' => 'bonus-management', 'as' => 'bonus-management.','middleware' => 'config:has_bonus'], function () {
     Route::group(['middleware' => ['auth']], function () {
         Route::get('choose-payout/{bonus_id}/{bonus_payout_id}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getChoosePayout');
         Route::get('view/{bonus_id}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getView');
         Route::get('list/{filter}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getList');
+
+        //bonus-management.bulk-pay
+        Route::get('bulk-pay/{monthlyReportId}/{type}', ['as' => 'bulk-pay', 'uses' => '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@bulkPay']);
+        //bonus-management.payment-state
+        Route::get('payment-state', ['as' => 'payment-state', 'uses' => '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@paymentState']);
     });
 
     Route::group(['middleware' => ['role:admin']], function () {

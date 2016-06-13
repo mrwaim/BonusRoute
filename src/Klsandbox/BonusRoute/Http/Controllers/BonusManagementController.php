@@ -3,6 +3,7 @@
 namespace Klsandbox\BonusRoute\Http\Controllers;
 
 use App\Models\BonusCategory;
+use Illuminate\Support\Fluent;
 use Illuminate\Support\MessageBag;
 use Klsandbox\OrderModel\Models\OrderItem;
 use Log;
@@ -215,7 +216,8 @@ class BonusManagementController extends Controller
         $report = $report->where('monthly_user_reports.bonus_payout_cash', '>', 0)
             ->select(
                 'monthly_user_reports.*',
-                'payments_approvals.approved_state'
+                'payments_approvals.approved_state',
+                'payments_approvals.payment_state'
             )
             ->leftJoin('payments_approvals', function ($join) {
                 $join->on('monthly_user_reports.user_id', '=', 'payments_approvals.user_id');
@@ -317,6 +319,7 @@ class BonusManagementController extends Controller
             PaymentsApprovals::create([
                 'user_id' => $report->user_id,
                 'approved_state' => Input::get('status'),
+                'payment_state' => 'unpaid',
                 'monthly_report_id' => $report->monthly_report_id,
                 'user_type' => Input::get('user_type'),
             ]);
@@ -526,5 +529,92 @@ class BonusManagementController extends Controller
         Session::flash('success_message', 'Bonus Category has been deleted.');
 
         return Redirect::to('/bonus-management/list-bonus-categories');
+    }
+
+    public function paymentState()
+    {
+        $validate = \Validator::make(Input::all(), [
+            'id' => 'required|numeric',
+            'status' => 'required',
+            'user_type' => 'required',
+        ]);
+
+        if ($validate->messages()->count()) {
+            App::abort(422, 'Invalid data');
+        }
+
+        $report = MonthlyUserReport::find(Input::get('id'));
+
+        if (empty($report)) {
+            App::abort(422, 'Invalid data');
+        }
+
+        if (!$this->validateUser($report->user_id) && Input::get('status') == 'approve') {
+            $messages = new MessageBag();
+            $messages->add('user', 'User payment details not valid');
+
+            return back()->withErrors($messages);
+        }
+
+        $payments_approvals = PaymentsApprovals::forSite()->where('user_id', $report->user_id)
+            ->where('monthly_report_id', $report->monthly_report_id)->first();
+
+        if (empty($payments_approvals)) {
+            PaymentsApprovals::create([
+                'user_id' => $report->user_id,
+                'approved_state' => 'not-reviewed',
+                'monthly_report_id' => $report->monthly_report_id,
+                'user_type' => Input::get('user_type'),
+                'payment_state' => Input::get('status'),
+            ]);
+        } else {
+            $payments_approvals->payment_state = Input::get('status');
+            $payments_approvals->user_type = Input::get('user_type');
+            $payments_approvals->save();
+        }
+
+        return back();
+    }
+
+    public function bulkPay($monthlyReportId, $type)
+    {
+        $file_name = 'bonus_' . date('m') . '_' . date('y') . '_' . $type;
+
+        $payments_approvals = MonthlyReport::find($monthlyReportId)
+            ->userPaymentsApprovals()
+            ->with(['user', 'user.bank'])
+            ->where('user_type', $type)
+            ->where('payment_state', 'paid')
+            ->get();
+
+        $data_excel = [];
+        foreach ($payments_approvals as $item) {
+            $monthlyUserReport = MonthlyUserReport::where('monthly_report_id', '=', $monthlyReportId)
+                ->where('user_id', '=', $item->user_id)
+                ->first();
+
+            if ($monthlyUserReport->bonus_payout_cash == 0) {
+                continue;
+            }
+
+            @$data_excel[] = new Fluent([
+                'name' => $item->user->name,
+                'total' => $monthlyUserReport->bonus_payout_cash,
+                'email' => $item->user->email,
+                'phone' => $item->user->phone,
+                'bank_account' => $item->user->bank_account,
+                'id_number' => $item->user->ic_number,
+                'due_date' => Carbon::now()->format('d M Y'),
+            ]);
+        }
+
+        $users = $data_excel;
+
+        Excel::create('billplz-bulk-pay', function($excel) use ($users){
+            $excel->sheet('Sheet1', function($sheet) use ($users){
+                $sheet->loadView('bonus-route::bulk-pay', ['users' => $users]);
+            });
+        })->export('xls');
+
     }
 }
