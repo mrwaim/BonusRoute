@@ -614,12 +614,10 @@ class BonusManagementController extends Controller
 
         $users = $data_excel;
 
-
         Excel::create('billplz-bulk-pay', function ($excel) use ($users) {
             $excel->sheet('Sheet1', function ($sheet) use ($users) {
                 $sheet->loadView('bonus-route::bulk-pay', ['users' => $users]);
             });
         })->export('xls');
-
     }
 }
