@@ -14,7 +14,7 @@
 @section('content')
 
     <div class="panel panel-default">
-        @if($filter == 'all')
+        @if(($filter == 'all') || ($filter == 'me'))
         @include('bonus-route::bonus-tile-partial')
         @endif
 
