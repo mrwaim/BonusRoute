@@ -106,7 +106,7 @@ class BonusManagementController extends Controller
         Site::protect($bonus->bonusType, 'Bonus Type');
 
         $rc = new ReportService();
-        $totalBonus = (object) $rc->getTotalBonusPayout();
+        $totalBonus = (object)$rc->getTotalBonusPayout();
 
         return view('bonus-route::view-bonus', [
             'user' => $user,
@@ -161,9 +161,9 @@ class BonusManagementController extends Controller
         }
 
         $rc = new ReportService();
-        $totalBonus = (object) $rc->getTotalBonusPayout();
-        $topBonusUser = (object) $rc->getTopBonusUser();
-        $bonusThisMonth = (object) $rc->getBonusThisMonth();
+        $totalBonus = (object)$rc->getTotalBonusPayout();
+        $topBonusUser = (object)$rc->getTopBonusUser();
+        $bonusThisMonth = (object)$rc->getBonusThisMonth();
 
         return view('bonus-route::list-bonus')
             ->with('list', $list)
@@ -382,10 +382,20 @@ class BonusManagementController extends Controller
             ->get();
 
         $header = [
-            'Payment Mode', 'Value Date', 'Customer Reference Number', 'Transaction Amount (RM)',
-            'Credit Account Number', 'Beneficiary Name 1', 'Beneficiary Name 2', 'Beneficiary Name 3',
-            'ID No (New IC, Old IC, Passport, Business Registration No)', 'Beneficiary Bank Code', 'Email',
-            'Advice Detail', 'Debit Description', 'Credit Description',
+            'Payment Mode',
+            'Value Date',
+            'Customer Reference Number',
+            'Transaction Amount (RM)',
+            'Credit Account Number',
+            'Beneficiary Name 1',
+            'Beneficiary Name 2',
+            'Beneficiary Name 3',
+            'ID No (New IC, Old IC, Passport, Business Registration No)',
+            'Beneficiary Bank Code',
+            'Email',
+            'Advice Detail',
+            'Debit Description',
+            'Credit Description',
         ];
 
         $data_excel[0] = $header;
@@ -493,7 +503,7 @@ class BonusManagementController extends Controller
         $input = Input::all();
 
         $messages = \Validator::make($input, [
-            'name' => 'required|unique:bonus_categories,name,NULL,id,site_id,'.Site::id(),
+            'name' => 'required|unique:bonus_categories,name,NULL,id,site_id,' . Site::id(),
             'friendly_name' => 'required',
             'description' => 'required',
         ]);
@@ -580,43 +590,29 @@ class BonusManagementController extends Controller
     {
         $file_name = 'bonus_' . date('m') . '_' . date('y') . '_' . $type;
 
-        $payments_approvals = MonthlyReport::find($monthlyReportId)
-            ->userPaymentsApprovals()
-            ->with(['user', 'user.bank'])
-            ->where('user_type', $type)
-            ->where('approved_state', 'approve');
+        $data = $this->getExportData($monthlyReportId, $type);
+        array_shift($data);
 
-        $payments_approvals = $payments_approvals->where(function ($q) {
-            $q->where('payment_state', 'unpaid')
-            ->orWhere('payment_state', null);
-        })->get();
 
         $data_excel = [];
-        foreach ($payments_approvals as $item) {
-            $monthlyUserReport = MonthlyUserReport::where('monthly_report_id', '=', $monthlyReportId)
-                ->where('user_id', '=', $item->user_id)
-                ->first();
-
-            if ($monthlyUserReport->bonus_payout_cash == 0) {
-                continue;
-            }
+        foreach ($data as $item) {
+            $user = User::whereEmail($item[10])->first();
+            assert($user);
 
             @$data_excel[] = new Fluent([
-                'name' => $item->user->name,
-                'total' => $monthlyUserReport->bonus_payout_cash,
-                'email' => $item->user->email,
-                'phone' => $item->user->phone,
-                'bank_account' => $item->user->bank_account,
-                'id_number' => $item->user->ic_number,
+                'name' => $item[5],
+                'total' => $item[3],
+                'email' => $item[10],
+                'phone' => $user->getPhone(),
+                'bank_account' => $item[5],
+                'id_number' => $item[8],
                 'due_date' => Carbon::now()->format('d M Y'),
             ]);
         }
 
-        $users = $data_excel;
-
-        Excel::create('billplz-bulk-pay', function ($excel) use ($users) {
-            $excel->sheet('Sheet1', function ($sheet) use ($users) {
-                $sheet->loadView('bonus-route::bulk-pay', ['users' => $users]);
+        Excel::create('billplz-bulk-pay', function ($excel) use ($data_excel) {
+            $excel->sheet('Sheet1', function ($sheet) use ($data_excel) {
+                $sheet->loadView('bonus-route::bulk-pay', ['users' => $data_excel]);
             });
         })->export('xls');
     }
