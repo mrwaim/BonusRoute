@@ -604,7 +604,7 @@ class BonusManagementController extends Controller
                 'total' => $item[3],
                 'email' => $item[10],
                 'phone' => $user->getPhone(),
-                'bank_account' => $item[5],
+                'bank_account' => $item[4],
                 'id_number' => $item[8],
                 'due_date' => Carbon::now()->format('d M Y'),
             ]);
