@@ -121,14 +121,19 @@ class BonusManagementController extends Controller
             User::adminGuard();
 
             $bonusCommands = [];
+            /**
+             * @var User $user
+             */
             foreach (User::forSite()->get() as $user) {
                 if ($user->role->name == 'admin') {
                     continue;
                 }
 
-                // TODO: This is based on what is reordered
-                $res = $this->bonusManager->resolveBonusCommandsForOrderItemUserDetails(0, new \Carbon\Carbon(), new OrderItem(), $user, new BonusCategory());
-                $bonusCommands = array_merge($bonusCommands, $res);
+                foreach ($user->getEligibleBonusCategories() as $bonusCategory)
+                {
+                    $res = $this->bonusManager->resolveBonusCommandsForOrderItemUserDetails(0, new \Carbon\Carbon(), new OrderItem(), $user, $bonusCategory);
+                    $bonusCommands = array_merge($bonusCommands, $res);
+                }
             }
 
             return view('bonus-route::list-reorder-bonus')->with('bonus_commands', $bonusCommands);
