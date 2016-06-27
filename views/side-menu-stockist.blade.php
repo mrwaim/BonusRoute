@@ -22,6 +22,12 @@ if($auth->manager){
         'url' => 'list/org',
         'menu' => 'Bonus In your organization',
     ];
+
+    $children[] = [
+        'page' => 'bonus-payments-list/org',
+        'url' => 'bonus-payments-list/org',
+        'menu' => 'Bonus Payments List',
+    ];
 }
 ?>
 

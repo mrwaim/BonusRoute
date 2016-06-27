@@ -129,8 +129,7 @@ class BonusManagementController extends Controller
                     continue;
                 }
 
-                foreach ($user->getEligibleBonusCategories() as $bonusCategory)
-                {
+                foreach ($user->getEligibleBonusCategories() as $bonusCategory) {
                     $res = $this->bonusManager->resolveBonusCommandsForOrderItemUserDetails(0, new \Carbon\Carbon(), new OrderItem(), $user, $bonusCategory);
                     $bonusCommands = array_merge($bonusCommands, $res);
                 }
@@ -146,7 +145,7 @@ class BonusManagementController extends Controller
                 ->paginate(20);
         } elseif ($filter == 'org') {
             $list = Bonus::forSite()
-                ->where('awarded_by_user_id', Auth::user()->id)
+                ->where('awarded_by_organization_id', Auth::user()->organization_id)
                 ->with('bonusStatus', 'bonusPayout', 'bonusType')
                 ->orderBy('created_at', 'DESC')
                 ->paginate(20);
@@ -179,14 +178,17 @@ class BonusManagementController extends Controller
             ->with('filter', $filter);
     }
 
-    public function getListPayments($year, $month, $filter)
+    public function getListPayments($year, $month, $is_hq, $organization_id, $filter)
     {
         $online_users = [];
         $start_date = new Carbon(date("$year-$month-01"));
         $end_date = new Carbon(date("$year-$month-01"));
         $end_date->endOfMonth();
 
-        $report = MonthlyReport::where('year', $year)
+        /**
+         * @var MonthlyReport $report
+         */
+        $report = MonthlyReport::for($is_hq, $organization_id)->where('year', $year)
             ->where('month', $month)->first();
 
         if (empty($report)) {
@@ -259,12 +261,25 @@ class BonusManagementController extends Controller
             ->with('filter', $filter);
     }
 
-    public function getBonusPaymentsList()
+    public function getBonusPaymentsList($filter)
     {
-        $data = MonthlyReport::getBonusPaymentsList();
+        if ($filter == 'pl') {
+            $organization_id = Auth::user()->organization_id;
+            $is_hq = false;
+        } elseif ($filter == 'hq') {
+            $organization_id = null;
+            $is_hq = true;
+        } else {
+            $organization_id = App\Models\Organization::HQ()->id;
+            $is_hq = false;
+        }
+
+        $data = MonthlyReport::getBonusPaymentsList($is_hq, $organization_id);
 
         return view('bonus-route::bonus-payments-list')
-            ->with('data', $data);
+            ->with('data', $data)
+            ->with('is_hq', $is_hq ? 1 : 0)
+            ->with('organization_id', $organization_id ? $organization_id : 0);
     }
 
     private function validateUser($user_id)
@@ -304,11 +319,16 @@ class BonusManagementController extends Controller
             App::abort(422, 'Invalid data');
         }
 
+        /**
+         * @var MonthlyUserReport $report
+         */
         $report = MonthlyUserReport::find(Input::get('id'));
 
         if (empty($report)) {
             App::abort(422, 'Invalid data');
         }
+
+        assert($report->monthlyReport->admin_id == Auth::user()->id);
 
         if (!$this->validateUser($report->user_id) && Input::get('status') == 'approve') {
             $messages = new MessageBag();

@@ -15,9 +15,13 @@
 'url' => 'list/reorder',
 'menu' => 'Bonus Upon Reorder',
 ], [
-'page' => 'bonus-payments-list',
-'url' => 'bonus-payments-list',
-'menu' => 'Bonus Payments List',
+'page' => 'bonus-payments-list/hq',
+'url' => 'bonus-payments-list/hq',
+'menu' => 'Bonus Payments List (HQ)',
+], [
+'page' => 'bonus-payments-list/org',
+'url' => 'bonus-payments-list/org',
+'menu' => 'Bonus Payments List (BioKare)',
 ], [
 'page' => 'view',
 'menu' => 'Bonus Details',

@@ -49,9 +49,9 @@
                                 {{ $itm->not_reviewed_manual }}
                             </td>
                             <td>
-                                <a href="/bonus-management/list-payments/{{ $itm->year }}/{{ $itm->month }}/online">Online</a>
+                                <a href="/bonus-management/list-payments/{{ $itm->year }}/{{ $itm->month }}/{{$is_hq}}/{{$organization_id}}/online">Online</a>
                                 /
-                                <a href="/bonus-management/list-payments/{{ $itm->year }}/{{ $itm->month }}/manual">Manual</a>
+                                <a href="/bonus-management/list-payments/{{ $itm->year }}/{{ $itm->month }}/{{$is_hq}}/{{$organization_id}}/manual">Manual</a>
                             </td>
                         </tr>
                     @endforeach

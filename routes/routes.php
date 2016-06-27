@@ -12,14 +12,17 @@ Route::group(['prefix' => 'bonus-management', 'as' => 'bonus-management.','middl
         Route::get('payment-state', ['as' => 'payment-state', 'uses' => '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@paymentState']);
     });
 
+    Route::group(['middleware' => ['role:manager']], function () {
+        Route::get('list-payments/{year}/{month}/{is_hq}/{organization_id}/{filter}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getListPayments');
+        Route::get('bonus-payments-list/{filter}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getBonusPaymentsList');
+    });
+
     Route::group(['middleware' => ['role:admin']], function () {
         Route::post('cancel-bonus', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@postCancelBonus');
         Route::post('set-approvals-all', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@postSetApprovalsAll');
         Route::get('set-payments-approvals', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getSetPaymentsApprovals');
         Route::get('excel/{monthly_report_id}/{type}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getExcel');
         Route::get('txt/{monthly_report_id}/{type}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getExport');
-        Route::get('list-payments/{year}/{month}/{filter}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getListPayments');
-        Route::get('bonus-payments-list', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getBonusPaymentsList');
 
 
         /**
