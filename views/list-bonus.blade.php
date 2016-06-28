@@ -14,7 +14,7 @@
 @section('content')
 
     <div class="panel panel-default">
-        @if(($filter == 'all') || ($filter == 'me'))
+        @if((($filter == 'all') || ($filter == 'me')) && ($auth->role != 'dropship'))
         @include('bonus-route::bonus-tile-partial')
         @endif
 
