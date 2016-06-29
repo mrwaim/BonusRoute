@@ -470,9 +470,17 @@ class BonusManagementController extends Controller
         $monthly_report_id = Input::get('monthly_report_id');
         $type = Input::get('type');
 
-        $reports = MonthlyUserReport::where('monthly_report_id', $monthly_report_id)->get();
+        $reports = MonthlyUserReport::
+            where('monthly_report_id', $monthly_report_id)
+            ->where('bonus_payout_cash', '>', 0)
+            ->get();
 
+        /**
+         * @var MonthlyUserReport $itm
+         */
         foreach ($reports as $itm) {
+            assert($itm->monthlyReport->admin_id == \Auth::user()->id);
+
             if (!$this->validateUser($itm->user_id)) {
                 continue;
             }
@@ -482,7 +490,7 @@ class BonusManagementController extends Controller
                 ->where('user_type', $type)
                 ->first();
 
-            if (empty($payments_approvals)) {
+            if (!$payments_approvals) {
                 PaymentsApprovals::create([
                     'user_id' => $itm->user_id,
                     'approved_state' => 'approve',

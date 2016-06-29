@@ -47,7 +47,7 @@
                     <tbody>
                     @foreach($data as $itm)
                         <tr>
-                            <td>@link($itm->user)</td>
+                            <td>@if($itm->user)@link($itm->user)@else{{$itm->user_id}}@endif</td>
                             <td>{{ $itm->bonus_payout_cash }}</td>
                             <td>{{ $itm->orders_count }}</td>
                             <td>{{ $itm->introductions_count }}</td>

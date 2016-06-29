@@ -24,8 +24,8 @@ if($auth->manager){
     ];
 
     $children[] = [
-        'page' => 'bonus-payments-list/org',
-        'url' => 'bonus-payments-list/org',
+        'page' => 'bonus-payments-list/pl',
+        'url' => 'bonus-payments-list/pl',
         'menu' => 'Bonus Payments List',
     ];
 }
