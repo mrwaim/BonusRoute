@@ -188,7 +188,7 @@ class BonusManagementController extends Controller
         /**
          * @var MonthlyReport $report
          */
-        $report = MonthlyReport::for($is_hq, $organization_id)->where('year', $year)
+        $report = MonthlyReport::forOrganization($is_hq, $organization_id)->where('year', $year)
             ->where('month', $month)->first();
 
         if (empty($report)) {
