@@ -84,6 +84,9 @@ class BonusManagementController extends Controller
     public function postCancelBonus()
     {
         \DB::transaction(function () use (&$bonus) {
+            /**
+             * @var Bonus $bonus
+             */
             $bonusId = Input::get('bonus_id');
             $bonus = Bonus::find($bonusId);
 
