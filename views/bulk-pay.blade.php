@@ -11,7 +11,7 @@
     </tr>
     @foreach($users as $user)
     <tr>
-        <td>Bonus</td>
+        <td>{{ $user->description }}</td>
         <td>{{ $user->name }}</td>
         <td>{{ $user->email }}</td>
         <td>{{ $user->phone }}</td>

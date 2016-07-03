@@ -26,16 +26,30 @@
                         <th>Approved Count (Online/Manual)</th>
                         <th>Rejected Count (Online/Manual)</th>
                         <th>Not Reviewed Count (Online/Manual)</th>
-                        <th>Open (Online/Manual)</th>
+                        <th>Open</th>
                     </tr>
                     </thead>
                     <tbody>
                     @foreach($data as $itm)
                         <tr>
-                            <td>{{ $itm->year }} / {{ $itm->month }}</td>
-                            <td>{{ $itm->orders_count }}</td>
-                            <td>{{ $itm->new_users_count }}</td>
-                            <td>{{ $itm->bonus_payout_cash }}</td>
+                            <td>
+                                <a href="/bonus-management/list-payments/{{ $itm->year }}/{{ $itm->month }}/{{$is_hq}}/{{$organization_id}}/all">
+                                    {{ $itm->year }} / {{ $itm->month }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="/bonus-management/list-orders/{{ $itm->year }}/{{ $itm->month }}/{{$is_hq}}/{{$organization_id}}">
+                                    {{ $itm->orders_count }}
+                                </a>
+                            </td>
+                            <td>
+                                {{ $itm->new_users_count }}
+                            </td>
+                            <td>
+                                <a href="/bonus-management/list-bonuses/{{ $itm->year }}/{{ $itm->month }}/{{$is_hq}}/{{$organization_id}}">
+                                    {{ $itm->bonus_payout_cash }}
+                                </a>
+                            </td>
                             <td>
                                 {{ $itm->approve_online }} /
                                 {{ $itm->approve_manual }}
@@ -52,6 +66,8 @@
                                 <a href="/bonus-management/list-payments/{{ $itm->year }}/{{ $itm->month }}/{{$is_hq}}/{{$organization_id}}/online">Online</a>
                                 /
                                 <a href="/bonus-management/list-payments/{{ $itm->year }}/{{ $itm->month }}/{{$is_hq}}/{{$organization_id}}/manual">Manual</a>
+                                /
+                                <a href="/bonus-management/list-payments/{{ $itm->year }}/{{ $itm->month }}/{{$is_hq}}/{{$organization_id}}/all">Both</a>
                             </td>
                         </tr>
                     @endforeach

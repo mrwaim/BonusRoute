@@ -13,14 +13,19 @@
         </div>
 
         @if($filter == 'org')
-        <h2 class="panel-title">View Bonuses in your organization</h2>
+            <h2 class="panel-title">View Bonuses in your organization</h2>
         @else
-        <h2 class="panel-title">View All Bonuses</h2>
+            <h2 class="panel-title">View All Bonuses</h2>
         @endif
 
     </header>
     <div class="panel-body">
-        @include('bonus-route::list-bonus-table-partial')
+        <div class="table-responsive">
+            @include('bonus-route::list-bonus-table-partial')
+            {!! $list->render() !!}
+        </div>
     </div>
+
+    @include('elements.export-list')
 </section>
 

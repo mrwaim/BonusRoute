@@ -13,7 +13,8 @@
                     @if(count($data))
                         <a href="/bonus-management/excel/{{ $report }}/{{ $filter }}" class="btn btn-default">Get
                             Excel</a>
-                        <a href="/bonus-management/bulk-pay/{{ $report }}/{{ $filter }}" class="btn btn-default">Billplz Format</a>
+                        <a href="/bonus-management/bulk-pay/{{ $report }}/{{ $filter }}" class="btn btn-default">Billplz
+                            Format</a>
                         <a href="/bonus-management/txt/{{ $report }}/{{ $filter }}" class="btn btn-default">Get
                             Txt</a>
                     @endif
@@ -36,10 +37,13 @@
                 <table class="{{isset($table_class) ? $table_class : 'table table-bordered table-striped table-condensed mb-none'}}">
                     <thead>
                     <tr>
+                        @if($filter == 'all')
+                            <th class="text-center">Online</th>
+                        @endif
                         <th class="text-center">User</th>
-                        <th class="text-center">Amount of Bonus</th>
-                        <th class="text-center">Amount of Orders</th>
-                        <th class="text-center">Amount of Introductions</th>
+                        <th class="text-center">Bonus (MYR)</th>
+                        <th class="text-center">Orders (#)</th>
+                        <th class="text-center">Introductions (#)</th>
                         <th class="text-center">Approval</th>
                         <th class="text-center">Payment</th>
                     </tr>
@@ -47,8 +51,15 @@
                     <tbody>
                     @foreach($data as $itm)
                         <tr>
+                            @if($filter == 'all')
+                                <td>{{ $itm->online_payer ? 'Yes' : 'No' }}</td>
+                            @endif
                             <td>@if($itm->user)@link($itm->user)@else{{$itm->user_id}}@endif</td>
-                            <td>{{ $itm->bonus_payout_cash }}</td>
+                            <td>
+                                <a href="/bonus-management/list-user-bonuses/{{$itm->user_id}}/{{ $report }}">
+                                    {{ $itm->bonus_payout_cash }}
+                                </a>
+                            </td>
                             <td>{{ $itm->orders_count }}</td>
                             <td>{{ $itm->introductions_count }}</td>
                             <td>
