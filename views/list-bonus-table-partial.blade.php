@@ -18,7 +18,7 @@
                 <td><a href='/bonus-management/view/{{$item->id}}'>#{{1024 + $item->id}}</a></td>
                 <td>{{$item->created_at->toDateString()}}</td>
                 @if(isset($show_awarded_to) && $show_awarded_to)
-                    <td>{{$item->user->name}}</td>
+                    <td>@link($item->user)</td>
                 @endif
                 @if($item->bonusPayout)
                     <td>{{$item->bonusPayout->friendly_name}}</td>
