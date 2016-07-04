@@ -4,6 +4,7 @@ namespace Klsandbox\BonusRoute\Http\Controllers;
 
 use App\Models\BonusCategory;
 use App\Models\BonusMonthlyUserReport;
+use App\Models\OrderMonthlyUserReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Fluent;
 use Illuminate\Support\MessageBag;
@@ -184,38 +185,38 @@ class BonusManagementController extends Controller
             ->with('filter', $filter);
     }
 
-    public function getListOrders($year, $month, $is_hq, $organization_id)
+    public function getListOrders(Request $request, $year, $month, $is_hq, $organization_id)
     {
-        $result = $this->getListData($year, $month, $is_hq, $organization_id, 'all');
+        if ($this->processExport($request, 'order-management.list-order-table-partial', func_get_args())) {
+            return;
+        }
+
+        $monthlyUserReports = MonthlyReport::forOrganization($is_hq, $organization_id)
+            ->where('year', '=', $year)
+            ->where('month', '=', $month)
+            ->first();
 
         $allOrders = [];
-        foreach ($result->data as $userReport) {
+        foreach ($monthlyUserReports->userReports as $userReport) {
             /**
              * @var MonthlyUserReport $userReport
              */
-            $orders = App\Models\Order::
-            forOrganization($userReport->monthlyReport->is_hq, $userReport->monthlyReport->organization_id)
-                ->where('user_id', $userReport->user_id)
-                ->whereBetween('created_at', [$userReport->monthlyReport->getCarbon(), $userReport->monthlyReport->getCarbon()->endOfMonth()]);
-
-            $orders = Order::whereApproved($orders);
-
-            foreach ($orders->get() as $order) {
-                $allOrders [] = $order->id;
+            foreach (OrderMonthlyUserReport::where('monthly_user_report_id', '=', $userReport->id)->get() as $link) {
+                $allOrders [] = $link->order_id;
             }
         }
 
-        $allOrdersQuery = Order::whereIn('id', $allOrders);
+        $allOrdersQuery = App\Models\Order::whereIn('id', $allOrders);
         $list = $allOrdersQuery
             ->paginate(500);
 
         return view('order-management.list-order')
             ->with('list', $list)
             ->with('restock', false)
+            ->with('export', false)
             ->with('listTitle', 'Orders')
             ->with('filter', 'bonus-review');
     }
-
 
     public function getListUserBonuses(Request $request, $user_id, $monthly_user_report_id)
     {
@@ -339,7 +340,7 @@ class BonusManagementController extends Controller
             $online_users[] = $val['metadata_user_id'];
         }
 
-        $report = $report->where('monthly_user_reports.bonus_payout_cash', '>', 0)
+        $report = $report//->where('monthly_user_reports.bonus_payout_cash', '>', 0)
             ->select(
                 'monthly_user_reports.*',
                 'payments_approvals.approved_state',

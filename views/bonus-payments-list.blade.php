@@ -20,7 +20,7 @@
                     <thead>
                     <tr>
                         <th>Date</th>
-                        <th>Order Count</th>
+                        <th>Approved Order Count</th>
                         <th>New Users Count</th>
                         <th>Bonus Cash</th>
                         <th>Approved Count (Online/Manual)</th>
@@ -39,7 +39,7 @@
                             </td>
                             <td>
                                 <a href="/bonus-management/list-orders/{{ $itm->year }}/{{ $itm->month }}/{{$is_hq}}/{{$organization_id}}">
-                                    {{ $itm->orders_count }}
+                                    {{ $itm->approved_orders_count }}
                                 </a>
                             </td>
                             <td>
