@@ -1,18 +1,31 @@
 <?php
 
 Route::group(['prefix' => 'bonus-management', 'as' => 'bonus-management.','middleware' => 'config:has_bonus'], function () {
+
+    // This is for testing only
+    Route::group(['prefix' => 'test', 'middleware' => ['role:admin']], function () {
+        //bonus-management.test-bulk-pay
+        Route::get('bulk-pay/{year}/{month}/{type}', ['as' => 'test-bulk-pay', 'uses' => '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getTestBillplzBulkPay']);
+
+        Route::get('list-payments/{year}/{month}/{filter}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getTestListPayments');
+
+        Route::get('set-approvals-all/{year}/{month}/{type}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getTestSetApprovalsAll');
+    });
+
     Route::group(['middleware' => ['auth']], function () {
         Route::get('choose-payout/{bonus_id}/{bonus_payout_id}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getChoosePayout');
         Route::get('view/{bonus_id}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getView');
         Route::get('list/{filter}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getList');
-
-        //bonus-management.bulk-pay
-        Route::get('bulk-pay/{monthlyReportId}/{type}', ['as' => 'bulk-pay', 'uses' => '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getBillplzBulkPay']);
-        //bonus-management.payment-state
-        Route::get('payment-state', ['as' => 'payment-state', 'uses' => '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@paymentState']);
     });
 
     Route::group(['middleware' => ['role:manager']], function () {
+
+        //bonus-management.bulk-pay
+        Route::get('bulk-pay/{monthlyReportId}/{type}', ['as' => 'bulk-pay', 'uses' => '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getBillplzBulkPay']);
+
+        //bonus-management.payment-state
+        Route::get('payment-state', ['as' => 'payment-state', 'uses' => '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@paymentState']);
+
         Route::get('list-payments/{year}/{month}/{is_hq}/{organization_id}/{filter}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getListPayments');
         Route::get('bonus-payments-list/{filter}', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@getBonusPaymentsList');
         Route::post('set-approvals-all', '\Klsandbox\BonusRoute\Http\Controllers\BonusManagementController@postSetApprovalsAll');

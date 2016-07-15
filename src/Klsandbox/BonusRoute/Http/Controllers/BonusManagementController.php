@@ -283,6 +283,28 @@ class BonusManagementController extends Controller
             ->with('filter', 'bonus-review');
     }
 
+    public function getTestListPayments($year, $month, $filter)
+    {
+        $resultList = [];
+        $resultList [] = $this->getListData($year, $month, true, null, $filter);
+        foreach (App\Models\Organization::all() as $organization) {
+            $resultList [] = $this->getListData($year, $month, false, $organization->id, $filter);
+        }
+
+        $data = collect();
+        foreach ($resultList as $result)
+        {
+            $data = $data->merge($result->data);
+        }
+
+        return view('bonus-route::list-payments')
+            ->with('data', $data)
+            ->with('payments_approvals', $result->payments_approvals_data)
+            ->with('report', $result->report_id)
+            ->with('user_type', $filter)
+            ->with('filter', $filter);
+    }
+
     public function getListPayments($year, $month, $is_hq, $organization_id, $filter)
     {
         $result = $this->getListData($year, $month, $is_hq, $organization_id, $filter);
@@ -340,7 +362,8 @@ class BonusManagementController extends Controller
             $online_users[] = $val['metadata_user_id'];
         }
 
-        $report = $report//->where('monthly_user_reports.bonus_payout_cash', '>', 0)
+        $report = $report
+            ->where('monthly_user_reports.bonus_payout_cash', '>', 0)
             ->select(
                 'monthly_user_reports.*',
                 'payments_approvals.approved_state',
@@ -446,8 +469,7 @@ class BonusManagementController extends Controller
 
         $user_type = Input::get('user_type');
 
-        if ($user_type == 'all')
-        {
+        if ($user_type == 'all') {
             $user_type = $report->online_payer ? 'online' : 'manual';
         }
 
@@ -524,15 +546,18 @@ class BonusManagementController extends Controller
         return \Response::make($content, 200, $headers);
     }
 
-    public function getExportData($monthly_report_id, $type)
+    public function getExportData($monthly_report_id, $type, $test = false)
     {
         $query = MonthlyReport::find($monthly_report_id)
             ->userPaymentsApprovals()
-            ->with(['user', 'user.bank'])
-            ->where('approved_state', 'approve');
+            ->with(['user', 'user.bank']);
 
-        if ($type != 'all')
+        if (!$test)
         {
+            $query = $query->where('approved_state', 'approve');
+        }
+
+        if ($type != 'all') {
             $query = $query->where('user_type', $type);
         }
 
@@ -563,8 +588,7 @@ class BonusManagementController extends Controller
                 ->where('online_payer', '=', $item->user_type == 'online' ? 1 : 0)
                 ->first();
 
-            if (!$monthlyUserReport)
-            {
+            if (!$monthlyUserReport) {
                 continue;
             }
 
@@ -596,6 +620,23 @@ class BonusManagementController extends Controller
         return $data_excel;
     }
 
+    public function getTestSetApprovalsAll($year, $month, $type)
+    {
+        $resultList = [];
+        $resultList [] = $this->getListData($year, $month, true, null, $type);
+        foreach (App\Models\Organization::all() as $organization) {
+            $resultList [] = $this->getListData($year, $month, false, $organization->id, $type);
+        }
+
+        foreach ($resultList as $result)
+        {
+            $this->approveAll($type, $result->report_id, true);
+        }
+
+        return 'OK';
+    }
+
+
     public function postSetApprovalsAll()
     {
         $validate = \Validator::make(Input::all(), [
@@ -610,58 +651,7 @@ class BonusManagementController extends Controller
         $monthly_report_id = Input::get('monthly_report_id');
         $type = Input::get('type');
 
-        if ($type == 'all') {
-            $types = ['online', 'manual'];
-        } else {
-            $types = [$type];
-        }
-
-        foreach ($types as $type) {
-
-            $reports = MonthlyUserReport::
-            where('monthly_report_id', $monthly_report_id)
-                ->where('bonus_payout_cash', '>', 0)
-                ->get();
-
-            /**
-             * @var MonthlyUserReport $itm
-             */
-            foreach ($reports as $itm) {
-                assert($itm->monthlyReport->admin_id == \Auth::user()->id);
-
-                if ($itm->online_payer && $type == 'manual')
-                {
-                    continue;
-                }
-
-                if (!$itm->online_payer && $type == 'online')
-                {
-                    continue;
-                }
-
-                if (!$this->validateUser($itm->user_id)) {
-                    continue;
-                }
-
-                $payments_approvals = PaymentsApprovals::where('user_id', $itm->user_id)
-                    ->where('monthly_report_id', $monthly_report_id)
-                    ->where('user_type', $type)
-                    ->first();
-
-                if (!$payments_approvals) {
-                    PaymentsApprovals::create([
-                        'user_id' => $itm->user_id,
-                        'approved_state' => 'approve',
-                        'monthly_report_id' => $monthly_report_id,
-                        'user_type' => $type,
-                    ]);
-                } else {
-                    $payments_approvals->approved_state = 'approve';
-                    $payments_approvals->user_type = $type;
-                    $payments_approvals->save();
-                }
-            }
-        }
+        $this->approveAll($type, $monthly_report_id);
 
         return back();
     }
@@ -751,6 +741,8 @@ class BonusManagementController extends Controller
             App::abort(422, 'Invalid data');
         }
 
+        assert($report->monthlyReport->admin_id == Auth::user()->id);
+
         if (!$this->validateUser($report->user_id) && Input::get('status') == 'approve') {
             $messages = new MessageBag();
             $messages->add('user', 'User payment details not valid');
@@ -778,29 +770,118 @@ class BonusManagementController extends Controller
         return back();
     }
 
+    public function getTestBillplzBulkPay($year, $month, $type)
+    {
+        $resultList = [];
+        $resultList [] = $this->getListData($year, $month, true, null, $type);
+        foreach (App\Models\Organization::all() as $organization) {
+            $resultList [] = $this->getListData($year, $month, false, $organization->id, $type);
+        }
+
+        $ids = [];
+        foreach ($resultList as $result) {
+            $ids[] = $result->report_id;
+        }
+
+        $this->getBillplzExcel($type, $ids);
+    }
+
     public function getBillplzBulkPay($monthlyReportId, $type)
     {
-        $file_name = 'bonus_' . date('m') . '_' . date('y') . '_' . $type;
+        $this->getBillplzExcel($type, [$monthlyReportId]);
+    }
 
-        $data = $this->getExportData($monthlyReportId, $type);
-        array_shift($data);
-
-        $data_excel = [];
-        foreach ($data as $item) {
-            $user = User::whereEmail($item[10])->first();
-            assert($user);
-
-            @$data_excel[] = new Fluent([
-                'name' => $item[5],
-                'total' => $item[3],
-                'email' => $item[10],
-                'phone' => $user->getPhone(),
-                'bank_account' => $item[4],
-                'id_number' => $item[8],
-                'due_date' => Carbon::now()->format('d/m/Y'),
-                'description' => preg_replace('/GSTAR/', 'BioKare' , $item[11]),
-            ]);
+    /**
+     * @param $type
+     * @param $monthly_report_id
+     */
+    private function approveAll($type, $monthly_report_id, $test = false)
+    {
+        if ($type == 'all') {
+            $types = ['online', 'manual'];
+        } else {
+            $types = [$type];
         }
+
+        foreach ($types as $type) {
+
+            $reports = MonthlyUserReport::
+            where('monthly_report_id', $monthly_report_id)
+                ->where('bonus_payout_cash', '>', 0)
+                ->get();
+
+            /**
+             * @var MonthlyUserReport $itm
+             */
+            foreach ($reports as $itm) {
+                if (!$test)
+                {
+                    assert($itm->monthlyReport->admin_id == \Auth::user()->id);
+                }
+
+                if ($itm->online_payer && $type == 'manual') {
+                    continue;
+                }
+
+                if (!$itm->online_payer && $type == 'online') {
+                    continue;
+                }
+
+                if (!$this->validateUser($itm->user_id)) {
+                    continue;
+                }
+
+                $payments_approvals = PaymentsApprovals::where('user_id', $itm->user_id)
+                    ->where('monthly_report_id', $monthly_report_id)
+                    ->where('user_type', $type)
+                    ->first();
+
+                if (!$payments_approvals) {
+                    PaymentsApprovals::create([
+                        'user_id' => $itm->user_id,
+                        'approved_state' => 'approve',
+                        'monthly_report_id' => $monthly_report_id,
+                        'user_type' => $type,
+                    ]);
+                } else {
+                    $payments_approvals->approved_state = 'approve';
+                    $payments_approvals->user_type = $type;
+                    $payments_approvals->save();
+                }
+            }
+        }
+    }
+
+    /**
+     * @param $type
+     * @param $ids
+     */
+    private function getBillplzExcel($type, $ids)
+    {
+        $data_excel = [];
+        foreach ($ids as $monthlyReportId) {
+            $data = $this->getExportData($monthlyReportId, $type, true);
+            array_shift($data);
+
+            $monthlyReport = MonthlyReport::find($monthlyReportId);
+
+            foreach ($data as $item) {
+                $user = User::whereEmail($item[10])->first();
+                assert($user);
+
+                @$data_excel[] = new Fluent([
+                    'name' => $item[5],
+                    'total' => $item[3],
+                    'email' => $item[10],
+                    'phone' => $user->getPhone(),
+                    'bank_account' => $item[4],
+                    'id_number' => $item[8],
+                    'due_date' => Carbon::now()->format('d/m/Y'),
+                    'description' => $monthlyReport->is_hq ? $item[11] : preg_replace('/GSTAR/', 'BioKare', $item[11]),
+                ]);
+            }
+        }
+
 
         Excel::create('billplz-bulk-pay', function ($excel) use ($data_excel) {
             $excel->sheet('Sheet1', function ($sheet) use ($data_excel) {
