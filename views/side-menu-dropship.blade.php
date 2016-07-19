@@ -3,6 +3,7 @@
     'folder' => 'bonus-management',
     'menu' => 'Bonus',
     'menuIcon' => 'fa-trophy',
+    'menuId' => 'bonus_menu',
     'children' => [ [
     'filter' => 'me',
     'url' => 'list/me',

@@ -37,5 +37,6 @@ if($auth->manager){
 'menu' => 'Bonus',
 'menuIcon' => 'fa-trophy',
 'children' => $children,
+'menuId' => 'bonus_menu',
 ])
 @endif
