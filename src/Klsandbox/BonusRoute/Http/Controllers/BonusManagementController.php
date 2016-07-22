@@ -642,6 +642,7 @@ class BonusManagementController extends Controller
         $validate = \Validator::make(Input::all(), [
             'monthly_report_id' => 'required|numeric',
             'type' => 'required|in:online,manual,all',
+            'state' => 'required|in:approve,reject'
         ]);
 
         if ($validate->messages()->count()) {
@@ -651,7 +652,9 @@ class BonusManagementController extends Controller
         $monthly_report_id = Input::get('monthly_report_id');
         $type = Input::get('type');
 
-        $this->approveAll($type, $monthly_report_id);
+        $this->approvalAll($type, $monthly_report_id, Input::get('state'));
+
+        flash()->success('Success!', 'Payment approvals has been updated');
 
         return back();
     }
@@ -794,8 +797,10 @@ class BonusManagementController extends Controller
     /**
      * @param $type
      * @param $monthly_report_id
+     * @param bool $test
+     * @param $approvalState
      */
-    private function approveAll($type, $monthly_report_id, $test = false)
+    private function approvalAll($type, $monthly_report_id, $approvalState, $test = false)
     {
         if ($type == 'all') {
             $types = ['online', 'manual'];
@@ -839,12 +844,12 @@ class BonusManagementController extends Controller
                 if (!$payments_approvals) {
                     PaymentsApprovals::create([
                         'user_id' => $itm->user_id,
-                        'approved_state' => 'approve',
+                        'approved_state' => $approvalState,
                         'monthly_report_id' => $monthly_report_id,
                         'user_type' => $type,
                     ]);
                 } else {
-                    $payments_approvals->approved_state = 'approve';
+                    $payments_approvals->approved_state = $approvalState;
                     $payments_approvals->user_type = $type;
                     $payments_approvals->save();
                 }
