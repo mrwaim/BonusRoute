@@ -642,7 +642,7 @@ class BonusManagementController extends Controller
         $validate = \Validator::make(Input::all(), [
             'monthly_report_id' => 'required|numeric',
             'type' => 'required|in:online,manual,all',
-            'state' => 'required|in:approve,reject'
+            'approved_state' => 'required|in:approve,reject'
         ]);
 
         if ($validate->messages()->count()) {
@@ -652,7 +652,7 @@ class BonusManagementController extends Controller
         $monthly_report_id = Input::get('monthly_report_id');
         $type = Input::get('type');
 
-        $this->approvalAll($type, $monthly_report_id, Input::get('state'));
+        $this->approvalAll($type, $monthly_report_id, Input::get('approved_state'));
 
         flash()->success('Success!', 'Payment approvals has been updated');
 
@@ -797,10 +797,10 @@ class BonusManagementController extends Controller
     /**
      * @param $type
      * @param $monthly_report_id
+     * @param $approvedState
      * @param bool $test
-     * @param $approvalState
      */
-    private function approvalAll($type, $monthly_report_id, $approvalState, $test = false)
+    private function approvalAll($type, $monthly_report_id, $approvedState, $test = false)
     {
         if ($type == 'all') {
             $types = ['online', 'manual'];
@@ -844,12 +844,12 @@ class BonusManagementController extends Controller
                 if (!$payments_approvals) {
                     PaymentsApprovals::create([
                         'user_id' => $itm->user_id,
-                        'approved_state' => $approvalState,
+                        'approved_state' => $approvedState,
                         'monthly_report_id' => $monthly_report_id,
                         'user_type' => $type,
                     ]);
                 } else {
-                    $payments_approvals->approved_state = $approvalState;
+                    $payments_approvals->approved_state = $approvedState;
                     $payments_approvals->user_type = $type;
                     $payments_approvals->save();
                 }

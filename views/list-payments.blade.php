@@ -92,14 +92,14 @@
             <button class="btn btn-success approve-all-bonuses" type="submit">Approve All</button>
             <input type="hidden" name="monthly_report_id" value="{{ $report }}">
             <input type="hidden" name="type" value="{{ $user_type }}">
-            <input type="hidden" name="state" value="approve">
+            <input type="hidden" name="approved_state" value="approve">
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
         </form>
         <form action="/bonus-management/set-approvals-all" method="post">
             <button class="btn btn-success approve-all-bonuses" type="submit">Reject all</button>
             <input type="hidden" name="monthly_report_id" value="{{ $report }}">
             <input type="hidden" name="type" value="{{ $user_type }}">
-            <input type="hidden" name="state" value="reject">
+            <input type="hidden" name="approved_state" value="reject">
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
         </form>
     </div>
