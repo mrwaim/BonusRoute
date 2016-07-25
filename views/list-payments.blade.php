@@ -11,12 +11,18 @@
                 <p class="center">
                     Bonus Payment Processing Completed.
                     @if(count($data))
+                        @if($auth->manager && $auth->admin)
                         <a href="/bonus-management/excel/{{ $report }}/{{ $filter }}" class="btn btn-default">Get
                             Excel</a>
+                        @endif
+                        @if($auth->manager)
                         <a href="/bonus-management/bulk-pay/{{ $report }}/{{ $filter }}" class="btn btn-default">Billplz
                             Format</a>
+                        @endif
+                        @if($auth->manager && $auth->admin)
                         <a href="/bonus-management/txt/{{ $report }}/{{ $filter }}" class="btn btn-default">Get
                             Txt</a>
+                        @endif
                     @endif
                 </p>
             </div>
