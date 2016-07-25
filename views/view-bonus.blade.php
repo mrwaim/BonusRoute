@@ -153,7 +153,8 @@
                                 </div>
                             </div>
 
-                            @if($auth->manager || $item->awarded_to_user_id == $auth->id)
+
+                            {{--@if($auth->manager || $item->awarded_to_user_id == $auth->id)
                                 <div class="bonus">
                                     <div class="bonus-content">
                                         {{$item->user->name}}'s Total Bonus Amount
@@ -170,7 +171,7 @@
                                         @endif
                                     </div>
                                 </div>
-                            @endif
+                            @endif--}}
                         </div>
                     </div>
                 </div>
