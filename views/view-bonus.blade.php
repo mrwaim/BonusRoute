@@ -153,25 +153,6 @@
                                 </div>
                             </div>
 
-
-                            {{--@if($auth->manager || $item->awarded_to_user_id == $auth->id)
-                                <div class="bonus">
-                                    <div class="bonus-content">
-                                        {{$item->user->name}}'s Total Bonus Amount
-                                    </div>
-                                    <div class="bonus-content content2">
-                                        RM {{$totalBonus->cash}}
-
-                                        @if($totalBonus->gold)<br/>
-                                        Gold {{$totalBonus->gold}} gm<br/>
-                                        @endif
-
-                                        @if($totalBonus->bonusNotChosen)
-                                            Not selected {{$totalBonus->bonusNotChosen}}
-                                        @endif
-                                    </div>
-                                </div>
-                            @endif--}}
                         </div>
                     </div>
                 </div>
