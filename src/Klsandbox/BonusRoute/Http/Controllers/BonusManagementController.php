@@ -5,6 +5,7 @@ namespace Klsandbox\BonusRoute\Http\Controllers;
 use App\Models\BonusCategory;
 use App\Models\BonusMonthlyUserReport;
 use App\Models\OrderMonthlyUserReport;
+use App\Services\Site;
 use Illuminate\Http\Request;
 use Illuminate\Support\Fluent;
 use Illuminate\Support\MessageBag;
@@ -65,7 +66,7 @@ class BonusManagementController extends Controller
     public function getChoosePayout($bonus_id, $bonus_payout_id)
     {
         $bonus = Bonus::find($bonus_id);
-
+        Site::protect($bonus, 'Bonus');
         if (Auth::user()->id != $bonus->awarded_to_user_id) {
             App::abort(403, 'Unauthorized.');
         }
@@ -104,7 +105,8 @@ class BonusManagementController extends Controller
         $user = Auth::user();
 
         $bonus = Bonus::find($bonusId);
-
+        Site::protect($bonus, 'Bonus');
+        Site::protect($bonus->bonusType, 'Bonus type');
         $rc = new ReportService();
         $totalBonus = (object)$rc->getTotalBonusPayout();
 
