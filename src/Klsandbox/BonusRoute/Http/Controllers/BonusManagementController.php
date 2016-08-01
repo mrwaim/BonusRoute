@@ -678,7 +678,7 @@ class BonusManagementController extends Controller
         $input = Input::all();
 
         $messages = \Validator::make($input, [
-            'name' => 'required|unique:bonus_categories,name,NULL,id,',
+            'name' => 'required|unique:bonus_categories,name,NULL,id',
             'friendly_name' => 'required',
             'description' => 'required',
         ]);
