@@ -5,6 +5,7 @@ namespace Klsandbox\BonusRoute\Http\Controllers;
 use App\Models\BonusCategory;
 use App\Models\BonusMonthlyUserReport;
 use App\Models\OrderMonthlyUserReport;
+use App\Services\Site;
 use Illuminate\Http\Request;
 use Illuminate\Support\Fluent;
 use Illuminate\Support\MessageBag;
@@ -24,7 +25,6 @@ use Auth;
 use Carbon\Carbon;
 use Input;
 use Klsandbox\BonusModel\Services\BonusManager;
-use Klsandbox\SiteModel\Site;
 use Redirect;
 use Session;
 use Excel;
@@ -66,8 +66,7 @@ class BonusManagementController extends Controller
     public function getChoosePayout($bonus_id, $bonus_payout_id)
     {
         $bonus = Bonus::find($bonus_id);
-        Site::protect($bonus);
-
+        Site::protect($bonus, 'Bonus');
         if (Auth::user()->id != $bonus->awarded_to_user_id) {
             App::abort(403, 'Unauthorized.');
         }
@@ -94,8 +93,6 @@ class BonusManagementController extends Controller
             $bonusId = Input::get('bonus_id');
             $bonus = Bonus::find($bonusId);
 
-            Site::protect($bonus, 'Bonus');
-
             $bonus->cancelBonusAndChildBonuses();
             Session::flash('success_message', 'The bonus has been cancelled.');
         });
@@ -109,9 +106,7 @@ class BonusManagementController extends Controller
 
         $bonus = Bonus::find($bonusId);
         Site::protect($bonus, 'Bonus');
-
-        Site::protect($bonus->bonusType, 'Bonus Type');
-
+        Site::protect($bonus->bonusType, 'Bonus type');
         $rc = new ReportService();
         $totalBonus = (object)$rc->getTotalBonusPayout();
 
@@ -131,7 +126,7 @@ class BonusManagementController extends Controller
             /**
              * @var User $user
              */
-            foreach (User::forSite()->get() as $user) {
+            foreach (User::all() as $user) {
                 if ($user->role->name == 'admin') {
                     continue;
                 }
@@ -146,21 +141,18 @@ class BonusManagementController extends Controller
         }
 
         if (Auth::user()->role->name == 'admin' && $filter == 'all') {
-            $list = Bonus::forSite()
-                ->with('bonusStatus', 'bonusPayout', 'bonusType')
+            $list = Bonus::with('bonusStatus', 'bonusPayout', 'bonusType')
                 ->orderBy('created_at', 'DESC')
                 ->paginate(20);
         } elseif ($filter == 'org') {
-            $list = Bonus::forSite()
-                ->where('awarded_by_organization_id', Auth::user()->organization_id)
+            $list = Bonus::where('awarded_by_organization_id', Auth::user()->organization_id)
                 ->with('bonusStatus', 'bonusPayout', 'bonusType')
                 ->orderBy('created_at', 'DESC')
                 ->paginate(20);
         } else {
             $userIds = User::userIdsForFilter($filter);
 
-            $list = Bonus::forSite()
-                ->with('bonusStatus', 'bonusPayout', 'bonusType')
+            $list = Bonus::with('bonusStatus', 'bonusPayout', 'bonusType')
                 ->whereIn('awarded_to_user_id', $userIds)
                 ->orderBy('created_at', 'DESC')
                 ->paginate(20);
@@ -339,7 +331,7 @@ class BonusManagementController extends Controller
                 ->with('payments_approvals', false);
         }
 
-        $payments_approvals = PaymentsApprovals::forSite()->where('monthly_report_id', $monthlyReport->id)
+        $payments_approvals = PaymentsApprovals::where('monthly_report_id', $monthlyReport->id)
             ->select('user_id')
             ->where('approved_state', 'approve')
             ->orWhere('approved_state', 'reject')
@@ -349,9 +341,7 @@ class BonusManagementController extends Controller
 
         $report = $monthlyReport->userReports()->getQuery();
 
-        $online_users_data = BillplzResponse
-            ::forSite()
-            ->select('metadata_user_id')
+        $online_users_data = BillplzResponse::select('metadata_user_id')
             ->where('created_at', '>=', $start_date)
             ->where('created_at', '<=', $end_date)
             ->where('paid', true)
@@ -486,7 +476,7 @@ class BonusManagementController extends Controller
             return back()->withErrors($messages);
         }
 
-        $payments_approvals = PaymentsApprovals::forSite()->where('user_id', $report->user_id)
+        $payments_approvals = PaymentsApprovals::where('user_id', $report->user_id)
             ->where('monthly_report_id', $report->monthly_report_id)->first();
 
         if (empty($payments_approvals)) {
@@ -667,7 +657,7 @@ class BonusManagementController extends Controller
     public function getListBonusCategories()
     {
         return view('bonus-route::list-bonus-categories')
-            ->with('bonusCategories', BonusCategory::forSite()->get());
+            ->with('bonusCategories', BonusCategory::all());
     }
 
     /**
@@ -688,7 +678,7 @@ class BonusManagementController extends Controller
         $input = Input::all();
 
         $messages = \Validator::make($input, [
-            'name' => 'required|unique:bonus_categories,name,NULL,id,site_id,' . Site::id(),
+            'name' => 'required|unique:bonus_categories,name,NULL,id',
             'friendly_name' => 'required',
             'description' => 'required',
         ]);
@@ -753,7 +743,7 @@ class BonusManagementController extends Controller
             return back()->withErrors($messages);
         }
 
-        $payments_approvals = PaymentsApprovals::forSite()->where('user_id', $report->user_id)
+        $payments_approvals = PaymentsApprovals::where('user_id', $report->user_id)
             ->where('monthly_report_id', $report->monthly_report_id)->first();
 
         if (empty($payments_approvals)) {
