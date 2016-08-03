@@ -143,19 +143,19 @@ class BonusManagementController extends Controller
         if (Auth::user()->role->name == 'admin' && $filter == 'all') {
             $list = Bonus::with('bonusStatus', 'bonusPayout', 'bonusType')
                 ->orderBy('created_at', 'DESC')
-                ->paginate(20);
+                ->paginate(50);
         } elseif ($filter == 'org') {
             $list = Bonus::where('awarded_by_organization_id', Auth::user()->organization_id)
                 ->with('bonusStatus', 'bonusPayout', 'bonusType')
                 ->orderBy('created_at', 'DESC')
-                ->paginate(20);
+                ->paginate(50);
         } else {
             $userIds = User::userIdsForFilter($filter);
 
             $list = Bonus::with('bonusStatus', 'bonusPayout', 'bonusType')
                 ->whereIn('awarded_to_user_id', $userIds)
                 ->orderBy('created_at', 'DESC')
-                ->paginate(20);
+                ->paginate(50);
         }
 
         $bonusCommands = [];
@@ -424,8 +424,7 @@ class BonusManagementController extends Controller
 
             return false;
         }
-
-        if (!preg_match('/^[0-9]{12}|stockist|agent$/', $user->ic_number)) {
+        if (!preg_match('/^[0-9]{12}|[0-9]{10}|stockist|agent$/', $user->ic_number)) {
             Log::info("Unable to update user:$user->id - bank account not match");
 
             return false;
@@ -620,7 +619,7 @@ class BonusManagementController extends Controller
 
         foreach ($resultList as $result)
         {
-            $this->approveAll($type, $result->report_id, true);
+            $this->approvalAll($type, $result->report_id, 'approve', true);
         }
 
         return 'OK';
