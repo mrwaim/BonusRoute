@@ -632,7 +632,7 @@ class BonusManagementController extends Controller
         $validate = \Validator::make(Input::all(), [
             'monthly_report_id' => 'required|numeric',
             'type' => 'required|in:online,manual,all',
-            'approved_state' => 'required|in:approve,reject'
+            'approved_state' => 'required|in:Approve All,Reject All'
         ]);
 
         if ($validate->messages()->count()) {
@@ -792,6 +792,12 @@ class BonusManagementController extends Controller
      */
     private function approvalAll($type, $monthly_report_id, $approvedState, $test = false)
     {
+        if($approvedState == 'Approve All'){
+            $approvedState = 'approve';
+        }else{
+            $approvedState = 'reject';
+        }
+
         if ($type == 'all') {
             $types = ['online', 'manual'];
         } else {
