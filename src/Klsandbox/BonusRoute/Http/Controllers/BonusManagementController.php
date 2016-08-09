@@ -87,7 +87,7 @@ class BonusManagementController extends Controller
     public function postCancelBonus()
     {
         \DB::transaction(function () use (&$bonus) {
-            /**
+            /*
              * @var Bonus $bonus
              */
             $bonusId = Input::get('bonus_id');
@@ -143,19 +143,19 @@ class BonusManagementController extends Controller
         if (Auth::user()->role->name == 'admin' && $filter == 'all') {
             $list = Bonus::with('bonusStatus', 'bonusPayout', 'bonusType')
                 ->orderBy('created_at', 'DESC')
-                ->paginate(20);
+                ->paginate(50);
         } elseif ($filter == 'org') {
             $list = Bonus::where('awarded_by_organization_id', Auth::user()->organization_id)
                 ->with('bonusStatus', 'bonusPayout', 'bonusType')
                 ->orderBy('created_at', 'DESC')
-                ->paginate(20);
+                ->paginate(50);
         } else {
             $userIds = User::userIdsForFilter($filter);
 
             $list = Bonus::with('bonusStatus', 'bonusPayout', 'bonusType')
                 ->whereIn('awarded_to_user_id', $userIds)
                 ->orderBy('created_at', 'DESC')
-                ->paginate(20);
+                ->paginate(50);
         }
 
         $bonusCommands = [];
@@ -284,8 +284,7 @@ class BonusManagementController extends Controller
         }
 
         $data = collect();
-        foreach ($resultList as $result)
-        {
+        foreach ($resultList as $result) {
             $data = $data->merge($result->data);
         }
 
@@ -424,8 +423,7 @@ class BonusManagementController extends Controller
 
             return false;
         }
-
-        if (!preg_match('/^[0-9]{12}|stockist|agent$/', $user->ic_number)) {
+        if (!preg_match('/^[0-9]{12}|[0-9]{10}|stockist|agent$/', $user->ic_number)) {
             Log::info("Unable to update user:$user->id - bank account not match");
 
             return false;
@@ -542,8 +540,7 @@ class BonusManagementController extends Controller
             ->userPaymentsApprovals()
             ->with(['user', 'user.bank']);
 
-        if (!$test)
-        {
+        if (!$test) {
             $query = $query->where('approved_state', 'approve');
         }
 
@@ -618,21 +615,19 @@ class BonusManagementController extends Controller
             $resultList [] = $this->getListData($year, $month, false, $organization->id, $type);
         }
 
-        foreach ($resultList as $result)
-        {
-            $this->approveAll($type, $result->report_id, true);
+        foreach ($resultList as $result) {
+            $this->approvalAll($type, $result->report_id, 'approve', true);
         }
 
         return 'OK';
     }
-
 
     public function postSetApprovalsAll()
     {
         $validate = \Validator::make(Input::all(), [
             'monthly_report_id' => 'required|numeric',
             'type' => 'required|in:online,manual,all',
-            'approved_state' => 'required|in:Approve All,Reject All'
+            'approved_state' => 'required|in:Approve All,Reject All',
         ]);
 
         if ($validate->messages()->count()) {
@@ -792,9 +787,9 @@ class BonusManagementController extends Controller
      */
     private function approvalAll($type, $monthly_report_id, $approvedState, $test = false)
     {
-        if($approvedState == 'Approve All'){
+        if ($approvedState == 'Approve All') {
             $approvedState = 'approve';
-        }else{
+        } else {
             $approvedState = 'reject';
         }
 
@@ -805,7 +800,6 @@ class BonusManagementController extends Controller
         }
 
         foreach ($types as $type) {
-
             $reports = MonthlyUserReport::
             where('monthly_report_id', $monthly_report_id)
                 ->where('bonus_payout_cash', '>', 0)
@@ -815,8 +809,7 @@ class BonusManagementController extends Controller
              * @var MonthlyUserReport $itm
              */
             foreach ($reports as $itm) {
-                if (!$test)
-                {
+                if (!$test) {
                     assert($itm->monthlyReport->admin_id == \Auth::user()->id);
                 }
 
@@ -882,7 +875,6 @@ class BonusManagementController extends Controller
                 ]);
             }
         }
-
 
         Excel::create('billplz-bulk-pay', function ($excel) use ($data_excel) {
             $excel->sheet('Sheet1', function ($sheet) use ($data_excel) {
