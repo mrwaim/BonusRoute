@@ -40,7 +40,7 @@
         @include('elements.error-message-partial')
         <div class="panel-body">
             <div class="table-responsive">
-                <table class="{{isset($table_class) ? $table_class : 'table table-bordered table-striped table-condensed mb-none'}}">
+                <table class="{{isset($table_class) ? $table_class : 'table table-bordered table-striped table-condensed mb-none'}}" id="table-list-payment">
                     <thead>
                     <tr>
                         @if($filter == 'all')
