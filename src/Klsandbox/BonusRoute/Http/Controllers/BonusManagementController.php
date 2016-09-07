@@ -615,11 +615,13 @@ class BonusManagementController extends Controller
             $resultList [] = $this->getListData($year, $month, false, $organization->id, $type);
         }
 
+        $approvalList = [];
         foreach ($resultList as $result) {
-            $this->approvalAll($type, $result->report_id, 'approve', true);
+            $list = $this->approvalAll($type, $result->report_id, 'approve', true);
+            $approvalList = array_merge($approvalList, $list);
         }
 
-        return 'OK';
+        return json_encode($approvalList);
     }
 
     public function postSetApprovalsAll()
@@ -787,7 +789,9 @@ class BonusManagementController extends Controller
      */
     private function approvalAll($type, $monthly_report_id, $approvedState, $test = false)
     {
-        if ($approvedState == 'Approve All') {
+        $list = [];
+
+        if ($approvedState == 'Approve All' || $approvedState == 'approve') {
             $approvedState = 'approve';
         } else {
             $approvedState = 'reject';
@@ -831,7 +835,7 @@ class BonusManagementController extends Controller
                     ->first();
 
                 if (!$payments_approvals) {
-                    PaymentsApprovals::create([
+                    $list[] = PaymentsApprovals::create([
                         'user_id' => $itm->user_id,
                         'approved_state' => $approvedState,
                         'monthly_report_id' => $monthly_report_id,
@@ -841,9 +845,12 @@ class BonusManagementController extends Controller
                     $payments_approvals->approved_state = $approvedState;
                     $payments_approvals->user_type = $type;
                     $payments_approvals->save();
+                    $list[] = $payments_approvals;
                 }
             }
         }
+
+        return $list;
     }
 
     /**
